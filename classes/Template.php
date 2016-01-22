@@ -40,8 +40,9 @@ class Template {
 	 */
 	protected static $jsFooter = array();
 
-	public static function header($subTitle = ''){
+	public static function header($cssFile = null, $subTitle = ''){
 		global $settings;
+		if (empty($cssFile)) $cssFile = 'onawes.css';
 		?>
 		<head>
 			<meta charset="utf-8">
@@ -57,7 +58,7 @@ class Template {
 			<title><?php echo $settings->scriptTitle; if (!empty($subTitle)) echo ' - '.$subTitle; ?></title>
 
 			<!-- The CSS -->
-			<link href="<?php echo $settings->absoluteURL; ?>/css/onawes.css" rel="stylesheet">
+			<link href="<?php echo $settings->absoluteURL; ?>/css/<?php echo $cssFile; ?>" rel="stylesheet">
 			<?php self::cssHeader(); ?>
 			<?php
 			// On ajoute le contenu de $header

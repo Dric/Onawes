@@ -17,6 +17,7 @@
  *
  * @property-read string  $absolutePath   Chemin absolu du script
  * @property-read string  $absoluteURL    URL du script
+ * @property-read string  $editURL        URL de la partie admin
  *
  * @property-read string  $scriptTitle    Titre de la page
  *
@@ -35,6 +36,7 @@ class Settings {
 
 	protected $absolutePath   = '';
 	protected $absoluteURL    = '';
+	protected $editURL        = '';
 
 	protected $scriptTitle    = 'onawes';
 

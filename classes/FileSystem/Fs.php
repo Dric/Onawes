@@ -307,7 +307,7 @@ class Fs {
 				$file=@file($this->mountName . DIRECTORY_SEPARATOR . $fileName, $opt );
 				break;
 			case 'string':
-				$file = file_get_contents($this->mountName . DIRECTORY_SEPARATOR . $fileName);
+				$file = @file_get_contents($this->mountName . DIRECTORY_SEPARATOR . $fileName);
 				break;
 			default:
 				new Alert('debug', '<code>FileSytem\Fs->fileRead()</code> : Le format <code>'.$format.'</code> n\'est pas dans la liste des formats autorisés !');

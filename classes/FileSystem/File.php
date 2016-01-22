@@ -7,9 +7,7 @@
  */
 
 namespace FileSystem;
-
-
-use Logs\Alert;
+use Alerts\Alert;
 
 /**
  * Objet fichier
@@ -19,6 +17,7 @@ use Logs\Alert;
 class File {
 
 	protected $name = null;
+	protected $baseName = null;
 	protected $fullName = null;
 	protected $dateCreated = 0;
 	protected $dateModified = 0;
@@ -42,7 +41,8 @@ class File {
 	 * @param array   $filters Filtrage de propriétés, certaines d'entre elles pouvant être lentes à récupérer
 	 */
 	public function __construct($mountName, $fileName, array $filters = array()){
-		$this->name = $fileName;
+		$this->name = pathinfo($fileName, PATHINFO_FILENAME);
+		$this->baseName = $fileName;
 		$this->fullName = rtrim($mountName, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR. $fileName;
 		if (file_exists($this->fullName)){
 			if ((!empty($filters) and in_array('extension', $filters)) or empty($filters)){

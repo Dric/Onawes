@@ -36,7 +36,7 @@ class Get {
 	 *
 	 * @from <http://stackoverflow.com/a/11648522/1749967>
 	 * @param array $objects Liste des objets
-	 * @param string $key Propriété sur laquelle effectuer la recherche (les propriétés peuvent être accessibles via un getter - ex : pour 'id' -> $object->getId())
+	 * @param string $key Propriété sur laquelle effectuer la recherche (les propriétés peuvent être accessibles via un getter - ex : pour 'id' -> $object->getBlockId())
 	 * @param mixed $value Valeur à chercher
 	 *
 	 * @return array
@@ -97,5 +97,23 @@ class Get {
 	public static function roundTo($number, $increments) {
 		$increments = 1 / $increments;
 		return (round($number * $increments) / $increments);
+	}
+
+	/**
+	 * retourne une chaîne résumée à x caractères
+	 *
+	 * @param string $text
+	 * @param int $charNumber
+	 *
+	 * @return string
+	 */
+	public static function excerpt($text, $charNumber){
+		if (strlen($text) > $charNumber) {
+			$text = substr($text, 0, $charNumber);
+			$text = substr($text,0,strrpos($text,' '));
+			$etc = '...';
+			$text = $text.$etc;
+		}
+		return $text;
 	}
 }
