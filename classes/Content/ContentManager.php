@@ -110,6 +110,7 @@ class ContentManager {
 		$fs = new Fs($this->contentDir);
 		$fileContent = $fs->readFile($fileName, 'string');
 		if (!$fileContent){
+			new Alert('error', 'Erreur : la page <code>'.$fileName.'</code> est illisible ou introuvable !');
 			return false;
 		}
 		// Parsing JSON
