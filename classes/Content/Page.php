@@ -36,6 +36,8 @@ class Page {
 	 */
 	protected $cssFile = null;
 
+	protected $theme = null;
+
 	/**
 	 * @var int[]
 	 */
@@ -73,8 +75,8 @@ class Page {
 		$this->toHTMLFooter();
 	}
 
-	public function toHTMLHeader($adminMode = false){
-		global $settings;
+	public function toHTMLHeader(){
+		global $settings, $adminMode;
 		if ($adminMode){
 			$subtitle = 'Administration';
 			$titleLink = $settings->editURL;
@@ -99,6 +101,7 @@ class Page {
 						}
 					</style>
 				</noscript>
+
 				<div id="page-content-wrapper" class="container">
 				<div class="content-header row">
 					<div class="col-md-12">
@@ -135,7 +138,8 @@ class Page {
 		$array = array(
 			'title'       => $this->title,
 			'CSSClasses'  => $this->CSSClasses,
-			'cssFile'     => $this->cssFile
+			'cssFile'     => $this->cssFile,
+			'theme'       => $this->theme
 		);
 		foreach ($this->rowsOrder as $rowId => $position){
 			$array['rows'][$rowId] = $this->rows[$rowId]->toArray();
@@ -317,5 +321,19 @@ class Page {
 			new Alert('error', 'Erreur : le fichier CSS <code>'.$cssFile.'</code> n\'existe pas !');
 			return false;
 		}
+	}
+
+	/**
+	 * @return null
+	 */
+	public function getTheme() {
+		return $this->theme;
+	}
+
+	/**
+	 * @param null $theme
+	 */
+	public function setTheme($theme) {
+		$this->theme = $theme;
 	}
 }

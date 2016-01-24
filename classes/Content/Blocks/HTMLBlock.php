@@ -49,12 +49,12 @@ class HTMLBlock extends Block{
 	public function toArray(){
 
 		$array = parent::toArray();
-		$array['content'] = $this->content;
+		$array['properties']['content'] = $this->content;
 
 		return $array;
 	}
 
-	protected function getHTMLCustom(){
+	public function getHTMLCustom(){
 		echo $this->getContent();
 	}
 
@@ -74,12 +74,12 @@ class HTMLBlock extends Block{
 		return array('content');
 	}
 
-	protected function getExcerpt(){
+	public function getExcerpt(){
 		parent::getExcerpt();
 		if ($this->content) { ?><p>Contenu : <code><?php echo \Get::excerpt($this->content, 40); ?></code></p><?php }
 	}
 
-	protected function getFormCustomFields(){
+	public function getFormCustomFields(){
 		?>
 		<label for="block_<?php echo $this->getFullId(); ?>_content">Contenu</label>
 		<textarea name="block_<?php echo $this->getFullId(); ?>_content" id="block_<?php echo $this->getFullId(); ?>_content" class="form-control" rows="8"><?php	echo $this->getContent(true);	?></textarea>

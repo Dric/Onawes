@@ -65,7 +65,7 @@ class Row {
 			$this->isUnsaved = true;
 		}
 		$this->title = $id;
-		if (!empty($CSSClasses)) $this->$CSSClasses = explode(' ', $CSSClasses);
+		if (!empty($CSSClasses)) $this->CSSClasses = explode(' ', $CSSClasses);
 	}
 	/**
 	 * Return content as HTML string
@@ -156,14 +156,14 @@ class Row {
 		return $ret;
 	}
 
-	/**
-	 * @param HTMLBlock $block
-	 * @param string    $replaceBlockId HTMLBlock Id to replace in case of a block renaming
+	/*
+	 * @param Block     $block
+	 * @param string    $replaceBlockId Block Id to replace in case of a block renaming
 	 * @param int       $position
 	 *
 	 * @return bool
 	 */
-	public function addBlock(HTMLBlock $block, $replaceBlockId = null, $position = null) {
+	public function addBlock(Block $block, $replaceBlockId = null, $position = null) {
 		if ($block->getBlockId() == 'newBlock'){
 			if (is_null($position)){
 				new Alert('error', 'Erreur : Ajout de nouveau block - la position n\'est pas renseignée !');
@@ -244,107 +244,6 @@ class Row {
 	}
 
 	/**
-	 * Display an edit form for the row
-	 *
-	 * @param string $fileName File Name where is saved the row
-	 * @param int $position
-	 */
-	public function setContentForm($fileName, $rowPosition){
-		global $settings;
-		$blockPosition = null;
-		$refBlock = null;
-		if (isset($_REQUEST['addBlock'])){
-			if (isset($_REQUEST['refBlock'])){
-				if (in_array($_REQUEST['addBlock'], array('before', 'after'))) $blockPosition =  $_REQUEST['addBlock'];
-				$refBlock = \Sanitize::SanitizeForDb($_REQUEST['refBlock'], false);
-			}
-		}
-		?>
-		<div class="row">
-			<div class="col-md-12" id="row_<?php echo $this->getId(); ?>">
-				<div class="panel panel-default">
-					<div class="panel-body">
-						<form class="well form-horizontal" action="<?php echo $settings->editURL; ?>#row_<?php echo $this->getId(); ?>">
-							<h3><?php if (!$this->isUnsaved) { ?>Ligne <code><?php echo $this->getTitle(); ?></code><?php } else { ?>Ajouter une nouvelle ligne<?php }?></h3>
-							<div class="form-group">
-								<label class="col-sm-5 control-label" for="row_<?php echo $this->getId(); ?>_newId">ID</label>
-								<div class="col-sm-5">
-									<input type="text" class="form-control" id="row_<?php echo $this->getId(); ?>_newId" name="row_<?php echo $this->getId(); ?>_newId" value="<?php echo $this->getId(); ?>" required>
-								</div>
-							</div>
-							<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
-							<input type="hidden" name="rowId" value="<?php echo $this->getId(); ?>">
-							<input type="hidden" name="position" value="<?php echo $rowPosition; ?>">
-							<input type="hidden" name="edit">
-							<button type="submit" class="btn btn-primary" name="request" value="saveRow">Enregistrer</button>
-							<?php if ($this->id != 'newRow'){ ?>
-								<button type="submit" name="request" value="delRow" class="btn btn-danger">Supprimer</button>
-								<div class="btn-group">
-									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Ajouter une ligne <span class="caret"></span>
-									</button>
-									<ul class="dropdown-menu">
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=before&refRow=<?php echo $this->getId(); ?>#row_newRow">Avant cette ligne</a></li>
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=after&refRow=<?php echo $this->getId(); ?>#row_newRow">Après cette ligne</a></li>
-									</ul>
-								</div>
-								<div class="btn-group">
-									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Déplacer <span class="caret"></span>
-									</button>
-									<ul class="dropdown-menu">
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=before&refRow=<?php echo $this->getId(); ?>#row_<?php echo $this->getId(); ?>">Vers le haut</a></li>
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=after&refRow=<?php echo $this->getId(); ?>#row_<?php echo $this->getId(); ?>">Vers le bas</a></li>
-									</ul>
-								</div>
-							<?php } ?>
-						</form>
-						<div class="row">
-							<?php
-							$nbBlocks = 0;
-							if (empty($this->blocks) and !$this->isUnsaved) {
-								$addBlock = new HTMLBlock('newBlock', $this->getId());
-								$addBlock->setContentForm($fileName, 1);
-							}elseif(!empty($this->blocks)){
-								foreach ($this->getBlocks() as $index => $block){
-									// Nouveau block avant le bloc référent
-									if ($refBlock == $block->getFullId() and $blockPosition == 'before'){
-										$nbBlocks++;
-										$addBlock = new HTMLBlock('newBlock', $this->getId());
-										$addBlock->setContentForm($fileName, $this->getBlockPosition($block->getBlockId()));
-										// even (impair) number
-										if ($nbBlocks%2 != 1){
-											?><div class="clearfix"></div><?php
-										}
-									}
-									$nbBlocks++;
-									$block->setContentForm($fileName, $this->getBlockPosition($block->getBlockId()));
-									// even (impair) number
-									if ($nbBlocks%2 != 1){
-										?><div class="clearfix"></div><?php
-									}
-									// Nouveau block après le bloc référent
-									if ($refBlock == $block->getFullId() and $blockPosition == 'after'){
-										$nbBlocks++;
-										$addBlock = new HTMLBlock('newBlock', $this->getId());
-										$addBlock->setContentForm($fileName, $this->getBlockPosition($block->getBlockId()) + 1);
-										// even (impair) number
-										if ($nbBlocks%2 != 1){
-											?><div class="clearfix"></div><?php
-										}
-									}
-								}
-							}
-							?>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-				<?php
-	}
-
-	/**
 	 * Move a block
 	 *
 	 * @param string $blockId HTMLBlock ID
@@ -378,5 +277,12 @@ class Row {
 	 */
 	public function getParentId() {
 		return $this->parentId;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isUnsaved() {
+		return $this->isUnsaved;
 	}
 }

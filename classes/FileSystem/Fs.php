@@ -235,6 +235,26 @@ class Fs {
 	}
 
 	/**
+	 * Returns list of subdirectories
+	 * @param string $path
+	 *
+	 * @return string[] List of folders
+	 */
+	public function getSubDirsIndDir($path = null){
+		$result = array();
+		$path = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+		$path = ltrim($path, DIRECTORY_SEPARATOR);
+		$dir = $this->mountName.DIRECTORY_SEPARATOR.$path;
+		$cDir = scandir($dir);
+		foreach ($cDir as $value){
+			if (!in_array($value,array(".","..")) and (is_dir($dir . $value))){
+				$result[] = $value;
+			}
+		}
+		return $result;
+	}
+
+	/**
 	 * Vérifie si un fichier existe, et retourne son nom avec sa casse si tel est le cas
 	 *
 	 * @param string  $fileName Nom du fichier

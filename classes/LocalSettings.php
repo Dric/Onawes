@@ -7,5 +7,6 @@
  */
 
 class LocalSettings extends Settings {
-	protected $debug   = true;
+	protected $debug      = true;
+	protected $prettyURL  = false;
 }

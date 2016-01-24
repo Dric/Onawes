@@ -11,9 +11,9 @@ namespace Content;
 
 use Alerts\Alert;
 use Content\Blocks\HTMLBlock;
+use Content\Themes\Edit;
 use FileSystem\File;
 use FileSystem\Fs;
-use simple_html_dom;
 use Template;
 
 class ContentManager {
@@ -28,13 +28,33 @@ class ContentManager {
 
 	protected $cssFiles = array();
 
+	protected $themes = array();
+
 	protected $url = null;
+
+	protected $widthsLabels = array(
+		'xs'  => 'Smartphone',
+		'sm'  => 'Tablette',
+		'md'  => 'PC',
+		'lg'  => 'Grand écran'
+	);
+
+	protected $levelTitlesLabels = array(
+		0 => '',
+		1 => 'Plus grand titre',
+		2 => 'Grand titre',
+		3 => 'Titre moyen',
+		4 => 'Petit titre',
+		5 => 'Très petit titre',
+		6 => 'Titre de moindre importance'
+	);
 
 	public function __construct(){
 		global $settings;
 		$this->contentDir = $settings->absolutePath.DIRECTORY_SEPARATOR.$settings->contentDir;
 		$this->populateBlockTypes();
 		$this->populateCssFiles();
+		$this->populateThemes();
 	}
 
 	/**
@@ -51,60 +71,11 @@ class ContentManager {
 	}
 
 	/**
-	 * Populate Page from file
+	 * Create Page object from json file
+	 * @param string $fileName JSON file
 	 *
-	 * @param string $fileName File Name
-	 *
-	 * @return bool
+	 * @return bool|Page
 	 */
-	public function addPageFromFile($fileName){
-		// reading file
-		$fs = new Fs($this->contentDir);
-		$fileContent = $fs->readFile($fileName, 'string');
-		// parsing html
-		$parsed = new simple_html_dom();
-		$parsed->load($fileContent);
-		// Creating page
-		$page = new Page($fileName);
-		foreach ($parsed->find('.row') as $rowNode){
-			// creating rows
-			$row = new Row($rowNode->id, $rowNode->class, $rowNode->tag);
-			/** @var simple_html_dom $rowBlock */
-			foreach ($rowNode->children as $rowBlock){
-				// Creating blocks
-				$block = new HTMLBlock($rowBlock->id, $rowBlock->class, $rowBlock->tag);
-
-				// Setting block widths
-				$CSSClasses = explode(' ', $rowBlock->class);
-				foreach ($CSSClasses as $class){
-					$re = "/^col-(\\w{2})-(\\d+)/i";
-					preg_match($re, $class, $matches);
-					if (!empty($matches)){
-						$block->setWidth($matches[1], (int)$matches[2]);
-					}
-				}
-				// Finding title tag - this is the first tag in block
-				$titleTag = $rowBlock->firstChild();
-				if (in_array($titleTag->tag, array('h1', 'h2', 'h3', 'h4', 'h5', 'h6'))){
-					$re = "/h(\d)/i";
-					preg_match($re, $titleTag->tag, $matches);
-					$block->setTitle($matches[1], $titleTag->innertext);
-					// Removing title from content
-					$rowBlock->firstChild()->outertext = '';
-				}
-				// Setting block content
-				$block->setContent($rowBlock->innertext);
-				$row->addBlock($block);
-			}
-
-			// Adding row to page
-			$page->addRow($row);
-		}
-		$this->page = $page;
-		$this->saveContent($page);
-		return $page;
-	}
-
 	public function addPageFromJSON($fileName){
 		// reading file
 		$fs = new Fs($this->contentDir);
@@ -127,7 +98,9 @@ class ContentManager {
 			}
 			if (isset($jsonRow['blocks'])) {
 				foreach ($jsonRow['blocks'] as $jsonBlock) {
-					$block = new HTMLBlock ($jsonBlock['id'], $row->getId());
+					$blockType = $this->getBlockPHPClass($jsonBlock['type']);
+					/** @var Block $block */
+					$block = new $blockType($jsonBlock['id'], $row->getId());
 					$block->setTitle($jsonBlock['titleLevel'], $jsonBlock['title']);
 					$block->setTag($jsonBlock['tag']);
 					foreach ($jsonBlock['CSSClasses'] as $class) {
@@ -136,7 +109,12 @@ class ContentManager {
 					foreach ($jsonBlock['widths'] as $width => $size) {
 						$block->setWidth($width, $size);
 					}
-					$block->setContent($jsonBlock['content']);
+					// Custom blocktypes properties
+					if (!empty($jsonBlock['properties'])){
+						foreach ($jsonBlock['properties'] as $property => $value){
+							$block->{'set'.ucfirst($property)}($value);
+						}
+					}
 					$row->addBlock($block);
 				}
 			}
@@ -145,11 +123,52 @@ class ContentManager {
 		return $page;
 	}
 
+	/**
+	 * Returns the class name of block type
+	 *
+	 * @param string $type Type of block
+	 *
+	 * @return string
+	 */
+	protected function getBlockPHPCLass($type){
+		return '\\Content\\Blocks\\' . $type . 'Block';
+	}
 
+	public function listPages(){
+		global $settings;
+		$fs = new Fs($this->contentDir);
+		$JSONPages = $fs->getFilesInDir(null,'json', array('extension'), true);
+		/** @var File $JSONPage */
+		foreach ($JSONPages as $JSONPage){
+
+		}
+		Edit::header();
+		?>
+		<h2>Liste des pages</h2><?php
+
+		?>
+		<div class="row">
+			<div class="col-md-12">
+
+			</div>
+		</div>
+		<?php
+		Edit::footer();
+	}
+
+	/**
+	 * @param Page $page
+	 */
 	public function editPage(Page $page){
-		global $settings, $cssFiles;
+		global $settings, $cssFiles, $themes;
 		$rowPosition = null;
 		$refRow = null;
+		/*if (empty($page->getTheme()) or !in_array($page->getTheme(), $themes)){
+			new Alert('error', 'Erreur : le thème de la page est introuvable ou n\'est pas défini ! Le thème par défaut sera utilisé !');
+			$theme = 'Home';
+		}else{
+			$theme = $page->getTheme();
+		}*/
 		$fileName = $page->getFileName();
 		if (isset($_REQUEST['addRow'])){
 			if (isset($_REQUEST['refRow'])){
@@ -157,7 +176,9 @@ class ContentManager {
 				$refRow = \Sanitize::SanitizeForDb($_REQUEST['refRow'], false);
 			}
 		}
-		$page->toHTMLHeader(true);
+		//$themeClass = '\\Themes\\'.$theme;
+		Edit::header();
+		//$page->toHTMLHeader();
 		?><h2>Edition de la page <code><?php echo $page->getTitle(); ?></code></h2><?php
 
 		?>
@@ -195,14 +216,14 @@ class ContentManager {
 			if ($refRow == $row->getId() and $rowPosition == 'before'){
 				$nbRows++;
 				$addRow = new Row('newRow', $fileName);
-				$addRow->setContentForm($fileName, $page->getRowPosition($row->getId()));
+				$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()));
 				// even (impair) number
 				if ($nbRows%2 != 1){
 					?><div class="clearfix"></div><?php
 				}
 			}
 			$nbRows++;
-			$row->setContentForm($fileName, $page->getRowPosition($row->getId()));
+			$this->editRow($row, $fileName, $page->getRowPosition($row->getId()));
 			// even (impair) number
 			if ($nbRows%2 != 1){
 				?><div class="clearfix"></div><?php
@@ -211,7 +232,7 @@ class ContentManager {
 			if ($refRow == $row->getId() and $rowPosition == 'after'){
 				$nbRows++;
 				$addRow = new Row('newRow', $fileName);
-				$addRow->setContentForm($fileName, $page->getRowPosition($row->getId()) + 1);
+				$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()) + 1);
 				// even (impair) number
 				if ($nbRows%2 != 1){
 					?><div class="clearfix"></div><?php
@@ -221,7 +242,240 @@ class ContentManager {
 		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
 		\Template::addJsToFooter('<script>$(\'textarea\').pagedownBootstrap();</script>');
-		$page->toHTMLFooter();
+		Edit::footer();
+	}
+
+	/**
+	 * Display an edit form for the row
+	 *
+	 * @param Row    $row
+	 * @param string $fileName File Name where is saved the row
+	 * @param        $rowPosition
+	 *
+	 * @internal param int $position
+	 */
+	public function editRow(Row $row, $fileName, $rowPosition){
+		global $settings;
+		$blockPosition = null;
+		$refBlock = null;
+		if (isset($_REQUEST['addBlock'])){
+			if (isset($_REQUEST['refBlock'])){
+				if (in_array($_REQUEST['addBlock'], array('before', 'after'))) $blockPosition =  $_REQUEST['addBlock'];
+				$refBlock = \Sanitize::SanitizeForDb($_REQUEST['refBlock'], false);
+			}
+		}
+		?>
+		<div class="row">
+			<div class="col-md-12" id="row_<?php echo $row->getId(); ?>">
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<form class="well form-horizontal" action="<?php echo $settings->editURL; ?>#row_<?php echo $row->getId(); ?>">
+							<h3><?php if (!$row->isUnsaved()) { ?>Ligne <code><?php echo $row->getTitle(); ?></code><?php } else { ?>Ajouter une nouvelle ligne<?php }?></h3>
+							<div class="form-group">
+								<label class="col-sm-5 control-label" for="row_<?php echo $row->getId(); ?>_newId">ID</label>
+								<div class="col-sm-5">
+									<input type="text" class="form-control" id="row_<?php echo $row->getId(); ?>_newId" name="row_<?php echo $row->getId(); ?>_newId" value="<?php echo $row->getId(); ?>" required>
+								</div>
+							</div>
+							<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
+							<input type="hidden" name="rowId" value="<?php echo $row->getId(); ?>">
+							<input type="hidden" name="position" value="<?php echo $rowPosition; ?>">
+							<input type="hidden" name="edit">
+							<button type="submit" class="btn btn-primary" name="request" value="saveRow">Enregistrer</button>
+							<?php if ($row->getId() != 'newRow'){ ?>
+								<button type="submit" name="request" value="delRow" class="btn btn-danger">Supprimer</button>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Ajouter une ligne <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=before&refRow=<?php echo $row->getId(); ?>#row_newRow">Avant cette ligne</a></li>
+										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=after&refRow=<?php echo $row->getId(); ?>#row_newRow">Après cette ligne</a></li>
+									</ul>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Déplacer <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=before&refRow=<?php echo $row->getId(); ?>#row_<?php echo $row->getId(); ?>">Vers le haut</a></li>
+										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=after&refRow=<?php echo $row->getId(); ?>#row_<?php echo $row->getId(); ?>">Vers le bas</a></li>
+									</ul>
+								</div>
+							<?php } ?>
+						</form>
+						<div class="row">
+							<?php
+							$nbBlocks = 0;
+							if (empty($row->getBlocks()) and !$row->isUnsaved()) {
+								$addBlock = new Block('newBlock', $row->getId());
+								$this->editBlock($addBlock, $fileName, 1);
+							}elseif(!empty($row->getBlocks())){
+								foreach ($row->getBlocks() as $index => $block){
+									// Nouveau block avant le bloc référent
+									if ($refBlock == $block->getFullId() and $blockPosition == 'before'){
+										$nbBlocks++;
+										$blocType = $this->getBlockPHPCLass($block->getType());
+										$addBlock = new $blocType('newBlock', $row->getId());
+										$this->editBlock($addBlock, $fileName, $row->getBlockPosition($block->getBlockId()));
+										// even (impair) number
+										if ($nbBlocks%2 != 1){
+											?><div class="clearfix"></div><?php
+										}
+									}
+									$nbBlocks++;
+									$this->editBlock($block, $fileName, $row->getBlockPosition($block->getBlockId()));
+									// even (impair) number
+									if ($nbBlocks%2 != 1){
+										?><div class="clearfix"></div><?php
+									}
+									// Nouveau block après le bloc référent
+									if ($refBlock == $block->getFullId() and $blockPosition == 'after'){
+										$nbBlocks++;
+										$addBlock = new Block('newBlock', $row->getId());
+										$this->editBlock($addBlock, $fileName, $row->getBlockPosition($block->getBlockId()) + 1);
+										// even (impair) number
+										if ($nbBlocks%2 != 1){
+											?><div class="clearfix"></div><?php
+										}
+									}
+								}
+							}
+							?>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Display an edit form for the block
+	 *
+	 * @param string $fileName File Name where is saved the block
+	 */
+	public function editBlock(Block $block, $fileName, $position){
+		global $settings, $blockTypes;
+		?>
+		<div class="col-lg-6" id="block_<?php echo $block->getFullId(); ?>">
+			<form class="well <?php if ($block->IsUnsaved()) { ?>well-warning<?php } ?> form-horizontal" action="<?php echo $settings->editURL; ?>#block_<?php echo $block->getFullId(); ?>">
+				<?php $block->getExcerpt(); ?>
+				<?php
+				if ($block->isUnsaved()){
+					?>
+					<div class="form-group">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_newId">ID</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" id="block_<?php echo $block->getFullId(); ?>_newId" name="block_<?php echo $block->getFullId(); ?>_newId" value="<?php echo $block->getBlockId(); ?>" required>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_type">Type de bloc</label>
+						<div class="col-sm-5">
+							<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_type" name="block_<?php echo $block->getFullId(); ?>_type" required>
+								<?php
+								foreach ($blockTypes as $blockType){
+									?><option <?php if ($blockType == $block->getType()) echo 'selected'; ?>><?php echo $blockType; ?></option><?php
+								}
+								?>
+							</select>
+						</div>
+					</div>
+					<?php
+				}else{
+				?>
+				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#<?php echo $block->getFullId(); ?>_editPanel" aria-expanded="false" aria-controls="CollapseEditPanel">
+					Modifier
+				</button>
+				<div class="collapse" id="<?php echo $block->getFullId(); ?>_editPanel">
+					<div class="form-group">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_title">Titre</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" id="block_<?php echo $block->getFullId(); ?>_tag" name="block_<?php echo $block->getFullId(); ?>_title" value="<?php echo $block->getTitle(); ?>" required>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_newId">ID</label>
+						<div class="col-sm-5">
+							<input type="text" class="form-control" id="block_<?php echo $block->getFullId(); ?>_newId" name="block_<?php echo $block->getFullId(); ?>_newId" value="<?php echo $block->getBlockId(); ?>" required>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_tag">Tag</label>
+						<div class="col-sm-3">
+							<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_tag" name="block_<?php echo $block->getFullId(); ?>_tag" required>
+								<?php
+								foreach ($block->getAllowedTags() as $allowedTag){
+									?><option <?php if ($allowedTag == $block->getTag()) echo 'selected'; ?>><?php echo $allowedTag; ?></option><?php
+								}
+								?>
+							</select>
+						</div>
+					</div>
+					Tailles :
+					<?php
+					foreach ($block->getWidths() as $width => $size){
+						?>
+						<div class="form-group form-group-sm">
+							<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>"><?php echo $this->widthsLabels[$width]; ?></label>
+							<div class="col-sm-3">
+								<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>" name="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>">
+									<?php
+									for ($i = 0; $i <= 12 ;$i++){
+										?><option <?php if ($size == $i) echo 'selected'; ?>><?php echo $i; ?></option><?php
+									}
+									?>
+								</select>
+							</div>
+						</div>
+						<?php
+					}
+					?>
+					<div class="form-group form-group-sm">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_titleLevel">Taille du titre</label>
+						<div class="col-sm-6">
+							<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_titleLevel" name="block_<?php echo $block->getFullId(); ?>_titleLevel">
+								<?php
+								for ($i = 0; $i <= 6 ;$i++){
+									?><option value="<?php echo $i; ?>" <?php if ($block->getTitleLevel() == $i) echo 'selected'; ?>><?php echo $this->levelTitlesLabels[$i]; ?> <?php if ($i > 0) { ?>(H<?php echo $i; ?>) <?php }else{ ?>Pas de titre<?php } ?></option><?php
+								}
+								?>
+							</select>
+						</div>
+					</div>
+					<?php $block->getFormCustomFields(); ?>
+					<?php } ?>
+					<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
+					<input type="hidden" name="blockFullId" value="<?php echo $block->getFullId(); ?>">
+					<input type="hidden" name="position" value="<?php echo $position; ?>">
+					<input type="hidden" name="edit">
+					<button type="submit" class="btn btn-primary" name="request" value="saveBlock">Enregistrer</button>
+					<?php if (!$block->isUnsaved()){ ?>
+						<button type="submit" name="request" value="delBlock" class="btn btn-danger">Supprimer</button>
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Ajouter un bloc <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addBlock=before&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Avant ce bloc</a></li>
+								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addBlock=after&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Après ce bloc</a></li>
+							</ul>
+						</div>
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								Déplacer <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveBlock&moveBlock=before&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getFullId(); ?>">Vers le haut</a></li>
+								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveBlock&moveBlock=after&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getFullId(); ?>">Vers le bas</a></li>
+							</ul>
+						</div>
+					<?php } ?>
+				</div>
+			</form>
+		</div>
+		<?php
 	}
 
 	public function processRequest(){
@@ -376,10 +630,24 @@ class ContentManager {
 		}
 	}
 
+	protected function populateThemes(){
+		global $settings;
+		$fs = new Fs($settings->absolutePath.DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'Content'.DIRECTORY_SEPARATOR.'Themes');
+		$this->themes[] = $fs->getSubDirsIndDir();
+	}
+
 	/**
 	 * @return array
 	 */
 	public function getCssFiles() {
 		return $this->cssFiles;
 	}
+
+	/**
+	 * @return array
+	 */
+	public function getThemes() {
+		return $this->themes;
+	}
+
 }

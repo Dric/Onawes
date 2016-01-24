@@ -86,6 +86,7 @@ class Template {
 			<meta name="msapplication-config" content="<?php echo $settings->absoluteURL; ?>/img/favicons/browserconfig.xml">
 			<meta name="theme-color" content="#ffffff">
 		</head>
+
 	<?php
 	}
 

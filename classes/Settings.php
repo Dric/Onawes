@@ -24,6 +24,7 @@
  * @property-read bool    $debug          Mode debug
  *
  * @property-read string  $contentDir     Chemin du contenu
+ * @property-read bool    $prettyURL      Utilisation des pretty URL
  */
 class Settings {
 
@@ -41,6 +42,8 @@ class Settings {
 	protected $scriptTitle    = 'onawes';
 
 	protected $contentDir     = 'content';
+
+	protected $prettyURL      = false;
 
 
 	public function __construct(Array $args = array()){

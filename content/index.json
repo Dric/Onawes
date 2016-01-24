@@ -3,7 +3,8 @@
     "CSSClasses": [
 
     ],
-    "cssFile": "assostdoul.css",
+    "cssFile": "onawes.css",
+    "theme": null,
     "rows": {
         "Test_it_raw_dude": {
             "title": "Test_it_raw_dude",
@@ -14,7 +15,8 @@
             ],
             "blocks": {
                 "test_it": {
-                    "title": null,
+                    "type": "HTML",
+                    "title": "Joe",
                     "titleLevel": 0,
                     "id": "test_it",
                     "tag": "div",
@@ -27,7 +29,9 @@
                         "md": 0,
                         "lg": 0
                     },
-                    "content": null
+                    "properties": {
+                        "content": "test it Joe !"
+                    }
                 }
             }
         },
@@ -40,6 +44,7 @@
             ],
             "blocks": {
                 "Pouet": {
+                    "type": "HTML",
                     "title": "test",
                     "titleLevel": 2,
                     "id": "Pouet",
@@ -53,9 +58,12 @@
                         "md": 0,
                         "lg": 0
                     },
-                    "content": "Le mordu est pointu.\r\n\r\nMais il est **sale** aussi !"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "PresBlock": {
+                    "type": "HTML",
                     "title": "PresBlock",
                     "titleLevel": 0,
                     "id": "PresBlock",
@@ -69,9 +77,12 @@
                         "md": 6,
                         "lg": 0
                     },
-                    "content": "Fondé en 1983, ce club de volley ball propose maintenant également du badminton et du futsal à tous les sportifs sur Bourges et aux alentours. Et prout même.\r\n\r\n\r\nEnfin prout, pas non plus un énorme prout, mais quand même."
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "test": {
+                    "type": "HTML",
                     "title": "fg",
                     "titleLevel": 2,
                     "id": "test",
@@ -85,7 +96,9 @@
                         "md": 4,
                         "lg": 0
                     },
-                    "content": "sdddfg"
+                    "properties": {
+                        "content": null
+                    }
                 }
             }
         },
@@ -98,6 +111,7 @@
             ],
             "blocks": {
                 "sections": {
+                    "type": "HTML",
                     "title": "Les sections",
                     "titleLevel": 1,
                     "id": "sections",
@@ -111,9 +125,12 @@
                         "md": 12,
                         "lg": 0
                     },
-                    "content": "L'association propose trois activités sportives, le volley-ball, le futsal et le badminton.Pour connaître les modalités d'inscription et les activités proposées au sein de chaque section, veuillez cliquer sur les images ci-dessous pour vous rendre dans les différentes sections.<\/p>"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "VolleyBall": {
+                    "type": "HTML",
                     "title": "VolleyBall",
                     "titleLevel": 2,
                     "id": "VolleyBall",
@@ -127,9 +144,12 @@
                         "md": 4,
                         "lg": 0
                     },
-                    "content": "Section1"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "Futsal": {
+                    "type": "HTML",
                     "title": "Futsal",
                     "titleLevel": 2,
                     "id": "Futsal",
@@ -143,9 +163,12 @@
                         "md": 4,
                         "lg": 0
                     },
-                    "content": "Section2"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "Badminton": {
+                    "type": "HTML",
                     "title": "Badminton",
                     "titleLevel": 2,
                     "id": "Badminton",
@@ -159,7 +182,9 @@
                         "md": 4,
                         "lg": 0
                     },
-                    "content": "Section3"
+                    "properties": {
+                        "content": null
+                    }
                 }
             }
         },
@@ -172,6 +197,7 @@
             ],
             "blocks": {
                 "Gymnase": {
+                    "type": "HTML",
                     "title": "Gymnase",
                     "titleLevel": 2,
                     "id": "Gymnase",
@@ -185,9 +211,12 @@
                         "md": 6,
                         "lg": 0
                     },
-                    "content": "Gymnase des Verdins - Avenue du 11 novembre - St Doulchard"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "Plan": {
+                    "type": "HTML",
                     "title": "Plan",
                     "titleLevel": 2,
                     "id": "Plan",
@@ -201,7 +230,9 @@
                         "md": 5,
                         "lg": 0
                     },
-                    "content": "Emplacement - Cliquez sur la carte pour accéder à Google Map."
+                    "properties": {
+                        "content": null
+                    }
                 }
             }
         },
@@ -214,6 +245,7 @@
             ],
             "blocks": {
                 "Contact": {
+                    "type": "HTML",
                     "title": "Contact",
                     "titleLevel": 2,
                     "id": "Contact",
@@ -227,9 +259,12 @@
                         "md": 6,
                         "lg": 0
                     },
-                    "content": "Contacter"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "Adresse": {
+                    "type": "HTML",
                     "title": "Adresse",
                     "titleLevel": 0,
                     "id": "Adresse",
@@ -243,7 +278,9 @@
                         "md": 6,
                         "lg": 0
                     },
-                    "content": "<h3>Adresse<\/h3>"
+                    "properties": {
+                        "content": null
+                    }
                 }
             }
         },
@@ -256,6 +293,7 @@
             ],
             "blocks": {
                 "Adresse": {
+                    "type": "HTML",
                     "title": "Adresse",
                     "titleLevel": 3,
                     "id": "Adresse",
@@ -269,9 +307,12 @@
                         "md": 2,
                         "lg": 0
                     },
-                    "content": "Association St Doul'"
+                    "properties": {
+                        "content": null
+                    }
                 },
                 "Liens": {
+                    "type": "HTML",
                     "title": "Liens",
                     "titleLevel": 3,
                     "id": "Liens",
@@ -285,7 +326,9 @@
                         "md": 4,
                         "lg": 0
                     },
-                    "content": "Page Facebook du club"
+                    "properties": {
+                        "content": null
+                    }
                 }
             }
         }

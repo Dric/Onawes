@@ -11,13 +11,13 @@
               <option name="cssDirectories">
                 <list>
                   <CssDirectory>
-                    <option name="path" value="U:\Onawes\css" />
+                    <option name="path" value="C:\GitHub\Onawes\css" />
                   </CssDirectory>
                 </list>
               </option>
               <option name="id" value="0" />
               <option name="includePattern" value="onawes.less" />
-              <option name="lessDirPath" value="U:\Onawes\css\less" />
+              <option name="lessDirPath" value="C:\GitHub\Onawes\css\less" />
               <option name="name" value="onawes" />
             </LessProfile>
           </value>
