@@ -1,7 +1,6 @@
 .wmd-panel{width:100%;}
-.wmd-button-bar{padding-bottom: 10px;}
 .wmd-input{height:300px;width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;-ms-box-sizing:border-box;}
-.wmd-preview{width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;-ms-box-sizing:border-box;margin-top: 10px}
+.wmd-preview{width:100%;box-sizing:border-box;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;-ms-box-sizing:border-box;}
 .wmd-panel .btn-toolbar{margin-bottom:0;padding:0 0 5px;width:100%;}
 .fa-header:before{content:'H';font-family:arial,helvetica,sans-serif;font-weight:bold;}
 .wmd-prompt-background{background-color:Black;}

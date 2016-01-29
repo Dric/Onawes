@@ -4,7 +4,7 @@ if (typeof exports === "object" && typeof require === "function") // we're in a 
 	Markdown = exports;
 else
 	Markdown = {};
-	
+
 // The following text is included for historical reasons, but should
 // be taken with a pinch of salt; it's not all true anymore.
 
@@ -133,7 +133,7 @@ else
 			// Don't do that.
 			if (g_urls)
 				throw new Error("Recursive call to converter.makeHtml");
-		
+
 			// Create the private state objects.
 			g_urls = new SaveHash();
 			g_titles = new SaveHash();
@@ -305,7 +305,7 @@ else
 			text = text.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math)\b[^\r]*?.*<\/\2>[ \t]*(?=\n+)\n)/gm, hashElement);
 
 			// Special case just for <hr />. It was easier to make a special case than
-			// to make the other regex more complicated.  
+			// to make the other regex more complicated.
 
 			/*
 			text = text.replace(/
@@ -425,9 +425,9 @@ else
 			// Must come after _DoAnchors(), because you can use < and >
 			// delimiters in inline links like [this](<url>).
 			text = _DoAutoLinks(text);
-			
+
 			text = text.replace(/~P/g, "://"); // put in place to prevent autolinking; reset now
-			
+
 			text = _EncodeAmpsAndAngles(text);
 			text = _DoItalicsAndBold(text);
 
@@ -443,7 +443,7 @@ else
 			// don't conflict with their use in Markdown for code, italics and strong.
 			//
 
-			// Build a regex to find HTML tags and comments.  See Friedl's 
+			// Build a regex to find HTML tags and comments.  See Friedl's
 			// "Mastering Regular Expressions", 2nd Ed., pp. 200-201.
 
 			// SE: changed the comment part of the regex
@@ -517,7 +517,7 @@ else
 							|
 							[^()]
 						)*?
-					)>?                
+					)>?
 					[ \t]*
 					(                       // $5
 						(['"])              // quote char = $6
@@ -656,7 +656,7 @@ else
 
 			return text;
 		}
-		
+
 		function attributeEncode(text) {
 			// unconditionally replace angle brackets here -- what ends up in an attribute (e.g. alt or title)
 			// never makes sense to have verbatim HTML in it (and the sanitizer would totally break it)
@@ -689,7 +689,7 @@ else
 					return whole_match;
 				}
 			}
-			
+
 			alt_text = escapeCharacters(attributeEncode(alt_text), "*_[]()");
 			url = escapeCharacters(url, "*_");
 			var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
@@ -713,7 +713,7 @@ else
 			// Setext-style headers:
 			//  Header 1
 			//  ========
-			//  
+			//
 			//  Header 2
 			//  --------
 			//
@@ -872,7 +872,7 @@ else
 			//
 			// We changed this to behave identical to MarkdownSharp. This is the constructed RegEx,
 			// with {MARKER} being one of \d+[.] or [*+-], depending on list_type:
-		
+
 			/*
 			list_str = list_str.replace(/
 				(^[ \t]*)                       // leading whitespace = $1
@@ -920,7 +920,7 @@ else
 		function _DoCodeBlocks(text) {
 			//
 			//  Process Markdown `<pre><code>` blocks.
-			//  
+			//
 
 			/*
 			text = text.replace(/
@@ -968,26 +968,26 @@ else
 		function _DoCodeSpans(text) {
 			//
 			// * Backtick quotes are used for <code></code> spans.
-			// 
+			//
 			// * You can use multiple backticks as the delimiters if you want to
 			//   include literal backticks in the code span. So, this input:
-			//     
+			//
 			//      Just type ``foo `bar` baz`` at the prompt.
-			//     
+			//
 			//   Will translate to:
-			//     
+			//
 			//      <p>Just type <code>foo `bar` baz</code> at the prompt.</p>
-			//     
+			//
 			//   There's no arbitrary limit to the number of backticks you
 			//   can use as delimters. If you need three consecutive backticks
 			//   in your code, use four for delimiters, etc.
 			//
 			// * You can use spaces to get literal backticks at the edges:
-			//     
+			//
 			//      ... type `` `bar` `` ...
-			//     
+			//
 			//   Turns to:
-			//     
+			//
 			//      ... type <code>`bar`</code> ...
 			//
 
@@ -1120,7 +1120,7 @@ else
 
 			var grafs = text.split(/\n{2,}/g);
 			var grafsOut = [];
-			
+
 			var markerRe = /~K(\d+)K/;
 
 			//
@@ -1201,11 +1201,11 @@ else
 			// *except* for the <http://www.foo.com> case
 
 			// automatically add < and > around unadorned raw hyperlinks
-			// must be preceded by space/BOF and followed by non-word/EOF character    
+			// must be preceded by space/BOF and followed by non-word/EOF character
 			text = text.replace(/(^|\s)(https?|ftp)(:\/\/[-A-Z0-9+&@#\/%?=~_|\[\]\(\)!:,\.;]*[-A-Z0-9+&@#\/%=~_|\[\]])($|\W)/gi, "$1<$2$3>$4");
 
 			//  autolink anything like <http://example.com>
-			
+
 			var replacer = function (wholematch, m1) { return "<a href=\"" + m1 + "\">" + pluginHooks.plainLinkText(m1) + "</a>"; }
 			text = text.replace(/<((https?|ftp):[^'">\s]+)>/gi, replacer);
 
@@ -1295,7 +1295,7 @@ else
 
 		var _problemUrlChars = /(?:["'*()[\]:]|~D)/g;
 
-		// hex-encodes some unusual "problem" chars in URLs to avoid URL detection problems 
+		// hex-encodes some unusual "problem" chars in URLs to avoid URL detection problems
 		function encodeProblemUrlChars(url) {
 			if (!url)
 				return "";
@@ -1372,15 +1372,15 @@ else
 
 	// The text that appears on the upper part of the dialog box when
 	// entering links.
-	var linkDialogText = "<code>http://example.com/ \"Titre optionnel\"</code>";
-	var imageDialogText = "<code>http://example.com/images/diagram.jpg \"Titre optionnel\"</code>";
+	var linkDialogText = "<code>http://example.com/ \"optional title\"</code>";
+	var imageDialogText = "<code>http://example.com/images/diagram.jpg \"optional title\"</code>";
 
 	// The default text that appears in the dialog input box when entering
 	// links.
 	var imageDefaultText = "http://";
 	var linkDefaultText = "http://";
 
-	var defaultHelpHoverTitle = "Aide de MarkDown";
+	var defaultHelpHoverTitle = "Markdown Editing Help";
 
 	// -------------------------------------------------------------------
 	//  END OF YOUR CHANGES
@@ -2440,14 +2440,14 @@ else
 			okButton.className = "btn btn-primary";
 			okButton.type = "button";
 			okButton.onclick = function () { return close(false); };
-			okButton.innerHTML = "Valider";
+			okButton.innerHTML = "OK";
 
 			// The cancel button
 			var cancelButton = doc.createElement("button");
-			cancelButton.className = "btn btn-default";
+			cancelButton.className = "btn btn-danger";
 			cancelButton.type = "button";
 			cancelButton.onclick = function () { return close(true); };
-			cancelButton.innerHTML = "Annuler";
+			cancelButton.innerHTML = "Cancel";
 
 			footer.appendChild(okButton);
 			footer.appendChild(cancelButton);
@@ -2688,7 +2688,7 @@ else
 
 			var makeButton = function (id, title, icon, textOp, group) {
 				var button = document.createElement("button");
-				button.className = "btn btn-default btn-sm";
+				button.className = "btn btn-default";
 				var buttonImage = document.createElement("i");
 				buttonImage.className = icon;
 				button.id = id + postfix;
@@ -2714,38 +2714,38 @@ else
 			}
 
 			group1 = makeGroup(1);
-			buttons.bold = makeButton("wmd-bold-button", "Gras - Ctrl+B", "glyphicon glyphicon-bold", bindCommand("doBold"), group1);
-			buttons.italic = makeButton("wmd-italic-button", "Italique - Ctrl+I", "glyphicon glyphicon-italic", bindCommand("doItalic"), group1);
+			buttons.bold = makeButton("wmd-bold-button", "Bold - Ctrl+B", "fa fa-bold", bindCommand("doBold"), group1);
+			buttons.italic = makeButton("wmd-italic-button", "Italic - Ctrl+I", "fa fa-italic", bindCommand("doItalic"), group1);
 
 			group2 = makeGroup(2);
-			buttons.link = makeButton("wmd-link-button", "Lien - Ctrl+L", "glyphicon glyphicon-link", bindCommand(function (chunk, postProcessing) {
+			buttons.link = makeButton("wmd-link-button", "Link - Ctrl+L", "fa fa-link", bindCommand(function (chunk, postProcessing) {
 				return this.doLinkOrImage(chunk, postProcessing, false);
 			}), group2);
-			buttons.quote = makeButton("wmd-quote-button", "Citation - Ctrl+Q", "glyphicon glyphicon-comment", bindCommand("doBlockquote"), group2);
-			buttons.code = makeButton("wmd-code-button", "Code - Ctrl+K", "glyphicon glyphicon-sound-stereo", bindCommand("doCode"), group2);
-			buttons.image = makeButton("wmd-image-button", "Image - Ctrl+G", "glyphicon glyphicon-picture", bindCommand(function (chunk, postProcessing) {
+			buttons.quote = makeButton("wmd-quote-button", "Blockquote - Ctrl+Q", "fa fa-quote-left", bindCommand("doBlockquote"), group2);
+			buttons.code = makeButton("wmd-code-button", "Code Sample - Ctrl+K", "fa fa-code", bindCommand("doCode"), group2);
+			buttons.image = makeButton("wmd-image-button", "Image - Ctrl+G", "fa fa-picture-o", bindCommand(function (chunk, postProcessing) {
 				return this.doLinkOrImage(chunk, postProcessing, true);
 			}), group2);
 
 			group3 = makeGroup(3);
-			buttons.olist = makeButton("wmd-olist-button", "Liste ordonnée - Ctrl+O", "glyphicon glyphicon-list", bindCommand(function (chunk, postProcessing) {
+			buttons.olist = makeButton("wmd-olist-button", "Numbered List - Ctrl+O", "fa fa-list-ol", bindCommand(function (chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
 			}), group3);
-			buttons.ulist = makeButton("wmd-ulist-button", "Liste simple - Ctrl+U", "glyphicon glyphicon-list", bindCommand(function (chunk, postProcessing) {
+			buttons.ulist = makeButton("wmd-ulist-button", "Bulleted List - Ctrl+U", "fa fa-list-ul", bindCommand(function (chunk, postProcessing) {
 				this.doList(chunk, postProcessing, false);
 			}), group3);
-			buttons.heading = makeButton("wmd-heading-button", "Titre - Ctrl+H", "glyphicon glyphicon-header", bindCommand("doHeading"), group3);
-			buttons.hr = makeButton("wmd-hr-button", "Ligne horizontale - Ctrl+R", "glyphicon glyphicon-minus", bindCommand("doHorizontalRule"), group3);
+			buttons.heading = makeButton("wmd-heading-button", "Heading - Ctrl+H", "fa fa-header", bindCommand("doHeading"), group3);
+			buttons.hr = makeButton("wmd-hr-button", "Horizontal Rule - Ctrl+R", "fa fa-ellipsis-h", bindCommand("doHorizontalRule"), group3);
 
 			group4 = makeGroup(4);
-			buttons.undo = makeButton("wmd-undo-button", "Annuler - Ctrl+Z", "glyphicon glyphicon-arrow-left", null, group4);
+			buttons.undo = makeButton("wmd-undo-button", "Undo - Ctrl+Z", "fa fa-undo", null, group4);
 			buttons.undo.execute = function (manager) { if (manager) manager.undo(); };
 
 			var redoTitle = /win/.test(nav.platform.toLowerCase()) ?
-				"Refaire - Ctrl+Y" :
-				"Refaire - Ctrl+Shift+Z"; // mac and other non-Windows platforms
+				"Redo - Ctrl+Y" :
+				"Redo - Ctrl+Shift+Z"; // mac and other non-Windows platforms
 
-			buttons.redo = makeButton("wmd-redo-button", redoTitle, "glyphicon glyphicon-arrow-right", null, group4);
+			buttons.redo = makeButton("wmd-redo-button", redoTitle, "fa fa-rotate-right", null, group4);
 			buttons.redo.execute = function (manager) { if (manager) manager.redo(); };
 
 			if (helpOptions) {
@@ -2753,7 +2753,7 @@ else
 				group5.className = group5.className + " pull-right";
 				var helpButton = document.createElement("button");
 				var helpButtonImage = document.createElement("i");
-				helpButtonImage.className = "glyphicon glyphicon-question-sign";
+				helpButtonImage.className = "fa fa-question";
 				helpButton.appendChild(helpButtonImage);
 				helpButton.className = "btn";
 				helpButton.id = "wmd-help-button" + postfix;
@@ -3030,10 +3030,10 @@ else
 
 			if (isImage) {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback))
-					ui.prompt('Insérer une image', imageDialogText, imageDefaultText, linkEnteredCallback);
+					ui.prompt('Insert Image', imageDialogText, imageDefaultText, linkEnteredCallback);
 			}
 			else {
-				ui.prompt('Insérer un lien', linkDialogText, linkDefaultText, linkEnteredCallback);
+				ui.prompt('Insert Link', linkDialogText, linkDefaultText, linkEnteredCallback);
 			}
 			return true;
 		}
@@ -3473,7 +3473,7 @@ else
 		output = window.Markdown;
 		Converter = output.Converter;
 	}
-		
+
 	output.getSanitizingConverter = function () {
 		var converter = new Converter();
 		converter.hooks.chain("postConversion", sanitizeHtml);
@@ -3506,9 +3506,9 @@ else
 	/// <summary>
 	/// attempt to balance HTML tags in the html string
 	/// by removing any unmatched opening or closing tags
-	/// IMPORTANT: we *assume* HTML has *already* been 
+	/// IMPORTANT: we *assume* HTML has *already* been
 	/// sanitized and is safe/sane before balancing!
-	/// 
+	///
 	/// adapted from CODESNIPPET: A8591DBA-D1D3-11DE-947C-BA5556D89593
 	/// </summary>
 	function balanceTags(html) {
@@ -3588,32 +3588,35 @@ else
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
  * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  */
 
 (function( $ ){
 
-	$.fn.pagedownBootstrap = function( options ) {  
+	$.fn.pagedownBootstrap = function( options ) {
 
 		// Default settings
 		var settings = $.extend( {
 			'sanitize'				: true,
 			'help'						: null,
-			'hooks'						: Array()
+			'hooks'						: Array(),
+			'converter_hooks'           : Array(),
+			'editor_hooks'              : Array()
 		}, options);
+		settings.converter_hooks.concat(settings.hooks);
 
-		return this.each(function() {   
+		return this.each(function() {
 
-			//Setup converter   
+			//Setup converter
 			var converter = null;
 			if(settings.sanitize)
 			{
@@ -3623,10 +3626,10 @@ else
 			}
 
 			//Register hooks
-			for(var i in settings.hooks)
+			for(var i in settings.converter_hooks)
 			{
-				var hook = settings.hooks[i];
-				if(typeof hook !== 'object' || typeof hook.event === 'undefined' 
+				var hook = settings.converter_hooks[i];
+				if(typeof hook !== 'object' || typeof hook.event === 'undefined'
 						|| typeof hook.callback !== 'function')
 				{
 					//A bad hook object was given
@@ -3651,7 +3654,7 @@ else
 			//Wrap the element with the needed html
 			$(this).wrap('<div class="wmd-panel" />');
 			$(this).before('<div id="wmd-button-bar-'+idAppend+'" class="wmd-button-bar" />');
-			$(this).after('<div id="wmd-preview-'+idAppend+'" class="wmd-preview well well-large" />');
+			$(this).after('<div id="wmd-preview-'+idAppend+'" class="wmd-preview" />');
 			$(this).addClass('wmd-input');
 
 			//Setup help function
@@ -3663,7 +3666,24 @@ else
 
 			//Setup editor
 			var editor = new Markdown.Editor(converter, "-"+idAppend.toString(), help);
-      editor.run();
+			editor.run();
+			//Register editor hooks
+			for(var i in settings.editor_hooks)
+			{
+				var hook = settings.editor_hooks[i];
+				if(typeof hook !== 'object' || typeof hook.event === 'undefined'
+					|| typeof hook.callback !== 'function')
+				{
+					//A bad hook object was given
+					continue;
+				}
+
+				if(hook.event == 'insertImageDialog')
+					editor.hooks.set(hook.event, hook.callback);
+				else
+					editor.hooks.chain(hook.event, hook.callback);
+
+			}
 
 		});
 

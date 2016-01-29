@@ -53,15 +53,16 @@ class AlertsManager {
 				}
 			}
 		}
-		if ($format == 'js') echo '</script>'.PHP_EOL;
+		//if ($format == 'js') echo '</script>'.PHP_EOL;
 	}
 
 	/**
 	 * Affiche l'alerte
 	 *
-	 * @param Alert  $alert Alerte à afficher
+	 * @param Alert $alert Alerte à afficher
+	 * @param string $type
 	 */
-	public static function displayAlert(Alert $alert){
+	public static function displayAlert(Alert $alert, $type = null){
 		$type = $alert->getType();
 		if ($type == 'danger')  $type = 'error';
 		if ($type == 'debug')   $type = 'warning';
@@ -119,7 +120,7 @@ class AlertsManager {
 	 */
 	public static function debug(){
 		global $db, $classesUsed;
-		new Alert('debug', '<code>Db->getQueriesCount</code> : <strong>'.$db->getQueriesCount().'</strong> requête(s) SQL effectuées.');
+		//new Alert('debug', '<code>Db->getQueriesCount</code> : <strong>'.$db->getQueriesCount().'</strong> requête(s) SQL effectuées.');
 		new Alert('debug', '<code>PHP</code> : Mémoire utilisée : <ul><li>Script :  <strong>'.Sanitize::readableFileSize(memory_get_usage()).'</strong></li><li>Total :   <strong>'.Sanitize::readableFileSize(memory_get_usage(true)).'</strong></li></ul>');
 	}
 } 

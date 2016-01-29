@@ -11,7 +11,6 @@ namespace Content;
 
 use Alerts\Alert;
 use Content\Blocks\HTMLBlock;
-use Content\Themes\Edit;
 use FileSystem\File;
 use FileSystem\Fs;
 use Template;
@@ -29,6 +28,15 @@ class ContentManager {
 	protected $cssFiles = array();
 
 	protected $themes = array();
+
+	protected $pages = array();
+
+	/**
+	 * @var Theme
+	 */
+	protected $currentTheme = null;
+
+	protected $siteSettings = array();
 
 	protected $url = null;
 
@@ -49,12 +57,54 @@ class ContentManager {
 		6 => 'Titre de moindre importance'
 	);
 
+
 	public function __construct(){
-		global $settings;
+		global $settings, $adminMode;
 		$this->contentDir = $settings->absolutePath.DIRECTORY_SEPARATOR.$settings->contentDir;
 		$this->populateBlockTypes();
 		$this->populateCssFiles();
 		$this->populateThemes();
+		$this->populatePages();
+		$this->populateSiteSettings();
+		if ($adminMode){
+			$this->currentTheme = new \Content\Themes\Edit();
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getSiteSettings() {
+		return $this->siteSettings;
+	}
+
+	/**
+	 * Save site settings
+	 *
+	 * settings are merged with existent settings, so not all the settings have to be set on input array
+	 *
+	 * @param array $settings Associative array of settings array('setting' => value)
+	 *
+	 * @return bool
+	 */
+	protected function saveSiteSettings(Array $settings){
+		$settings = array_merge($this->siteSettings, $settings);
+		$fs = new Fs($this->contentDir);
+		return $fs->writeFile('siteSettings.json', json_encode($settings, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), false, true);
+	}
+
+	protected function populateSiteSettings(){
+		$fs = new Fs($this->contentDir);
+		$fileContent = $fs->readFile('siteSettings.json', 'string');
+		if ($fileContent === false){
+			new Alert('error', 'Erreur : Impossible de récupérer les paramètres du site. Le fichier est introuvable ou illisible !');
+			return false;
+		}
+		// Parsing JSON
+		if (!empty($fileContent)){
+			$this->siteSettings = json_decode($fileContent, true);
+		}
+		return true;
 	}
 
 	/**
@@ -64,12 +114,26 @@ class ContentManager {
 	 *
 	 * @return bool
 	 */
-	protected function saveContent(Page $page){
+	protected function savePage(Page $page){
 		$fs = new Fs($this->contentDir);
+		// No rows = new page !
+		if(empty($page->getRows())){
+			return $fs->writeFile($page->getFileName(), $page->toJSON(), false, false);
+		}
 		// A backup is made of the file when saving
 		return $fs->writeFile($page->getFileName(), $page->toJSON(), false, true);
 	}
 
+
+	protected function delPage($fileName, $removeBackup = false){
+		$fs = new Fs($this->contentDir);
+		return $fs->removeFile($fileName, $removeBackup);
+	}
+
+	protected function restoreBackup($fileName){
+		$fs = new Fs($this->contentDir);
+		return $fs->copyFile($fileName, str_replace('.backup', '', $fileName));
+	}
 	/**
 	 * Create Page object from json file
 	 * @param string $fileName JSON file
@@ -88,37 +152,38 @@ class ContentManager {
 		$jsonArray = json_decode($fileContent, true);
 		$page = new Page($fileName);
 		if (!empty($jsonArray['title'])) $page->setTitle($jsonArray['title']);
-		if (!empty($jsonArray['cssFile'])) $page->setCssFile($jsonArray['cssFile']);
-		foreach ($jsonArray['rows'] as $jsonRow){
-			$row = new Row ($jsonRow['id'], $fileName);
-			$row->setTitle($jsonRow['title']);
-			$row->setTag($jsonRow['tag']);
-			foreach ($jsonRow['CSSClasses'] as $class){
-				$row->addCSSClass($class);
-			}
-			if (isset($jsonRow['blocks'])) {
-				foreach ($jsonRow['blocks'] as $jsonBlock) {
-					$blockType = $this->getBlockPHPClass($jsonBlock['type']);
-					/** @var Block $block */
-					$block = new $blockType($jsonBlock['id'], $row->getId());
-					$block->setTitle($jsonBlock['titleLevel'], $jsonBlock['title']);
-					$block->setTag($jsonBlock['tag']);
-					foreach ($jsonBlock['CSSClasses'] as $class) {
-						$block->addCSSClass($class);
-					}
-					foreach ($jsonBlock['widths'] as $width => $size) {
-						$block->setWidth($width, $size);
-					}
-					// Custom blocktypes properties
-					if (!empty($jsonBlock['properties'])){
-						foreach ($jsonBlock['properties'] as $property => $value){
-							$block->{'set'.ucfirst($property)}($value);
-						}
-					}
-					$row->addBlock($block);
+		if (!empty($jsonArray['rows'])){
+			foreach ($jsonArray['rows'] as $jsonRow){
+				$row = new Row ($jsonRow['id'], $fileName);
+				$row->setTitle($jsonRow['title']);
+				$row->setTag($jsonRow['tag']);
+				foreach ($jsonRow['CSSClasses'] as $class){
+					$row->addCSSClass($class);
 				}
+				if (isset($jsonRow['blocks'])) {
+					foreach ($jsonRow['blocks'] as $jsonBlock) {
+						$blockType = $this->getBlockPHPClass($jsonBlock['type']);
+						/** @var Block $block */
+						$block = new $blockType($jsonBlock['id'], $row->getId());
+						$block->setTitle($jsonBlock['titleLevel'], $jsonBlock['title']);
+						$block->setTag($jsonBlock['tag']);
+						foreach ($jsonBlock['CSSClasses'] as $class) {
+							$block->addCSSClass($class);
+						}
+						foreach ($jsonBlock['widths'] as $width => $size) {
+							$block->setWidth($width, $size);
+						}
+						// Custom blocktypes properties
+						if (!empty($jsonBlock['properties'])){
+							foreach ($jsonBlock['properties'] as $property => $value){
+								$block->{'set'.ucfirst($property)}($value);
+							}
+						}
+						$row->addBlock($block);
+					}
+				}
+				$page->addRow($row);
 			}
-			$page->addRow($row);
 		}
 		return $page;
 	}
@@ -134,26 +199,161 @@ class ContentManager {
 		return '\\Content\\Blocks\\' . $type . 'Block';
 	}
 
-	public function listPages(){
-		global $settings;
-		$fs = new Fs($this->contentDir);
-		$JSONPages = $fs->getFilesInDir(null,'json', array('extension'), true);
-		/** @var File $JSONPage */
-		foreach ($JSONPages as $JSONPage){
+	public function editHome(){
+		$this->currentTheme->toHTMLEditManual();
+	}
 
-		}
-		Edit::header();
+	public function editSite(){
+		global $themes;
+		$this->currentTheme->toHTMLHeader();
+		$siteTheme = (isset($this->siteSettings['theme'])) ? $this->siteSettings['theme'] : null;
+		$mainPage = (isset($this->siteSettings['mainPage'])) ? $this->siteSettings['mainPage'] : null;
 		?>
-		<h2>Liste des pages</h2><?php
-
-		?>
+		<h2>Paramètres du site</h2>
 		<div class="row">
 			<div class="col-md-12">
-
+				<form method="post" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>'site')); ?>">
+					<div class="row">
+						<div class="col-md-5">
+							<div class="form-group">
+								<label class="control-label" for="theme">Thème</label>
+								<select class="form-control" id="theme" name="theme" required>
+									<option></option>
+									<?php
+									foreach ($themes as $theme){
+										if ($theme != 'Edit') {
+											?>
+											<option <?php if ($siteTheme == $theme) echo 'selected'; ?>>
+												<?php echo $theme; ?>
+											</option>
+											<?php
+										}
+									}
+									?>
+								</select>
+							</div>
+							<div class="form-group">
+								<label class="control-label" for="mainPage">Page principale</label>
+								<select class="form-control" id="mainPage" name="mainPage" required>
+									<option></option>
+									<?php
+									foreach ($this->pages as $fileName => $pageTitle){
+										?>
+										<option <?php if ($mainPage == $fileName) echo 'selected'; ?> value="<?php echo $fileName; ?>">
+											<?php echo $pageTitle; ?>
+										</option>
+										<?php
+									}
+									?>
+								</select>
+							</div>
+							<div class="form-group">
+								<button class="btn btn-default" type="submit" name="request" value="saveSiteSettings">Sauvegarder</button>
+							</div>
+						</div>
+					</div>
+				</form>
 			</div>
 		</div>
 		<?php
-		Edit::footer();
+		$this->currentTheme->toHTMLFooter();
+	}
+
+	public function listPages(){
+		global $settings;
+		$fs = new Fs($this->contentDir);
+		$JSONPages = $fs->getFilesInDir(null, null, array('extension'), true);
+		$this->currentTheme->toHTMLHeader();
+		?>
+		<h2>Liste des pages</h2>
+		<div class="row">
+			<div class="col-md-12">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th>Nom</th>
+							<th>Backup</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<?php
+					$pages = array();
+					/** @var File $JSONPage */
+					foreach ($JSONPages as $JSONPage){
+						if (in_array($JSONPage->extension, array('json', 'backup')) and $JSONPage->name != 'siteSettings' and $JSONPage->name != 'siteSettings.json'){
+							if ($JSONPage->extension == 'backup'){
+								$pages[str_replace('.backup', '', $JSONPage->baseName)]['backup'] = $JSONPage->baseName;
+							}else{
+								$pages[$JSONPage->baseName]['mainFile'] = $JSONPage->baseName;
+							}
+						}
+					}
+					foreach ($pages as $fileName => $page){
+						$urlEdit = Template::createURL(array('edit'=>true, 'page'=>$fileName));
+						$urlDel = Template::createURL(array('edit'=>true, 'fileName'=>$fileName, 'request' => 'delPage'));
+						$urlbackupActions = Template::createURL(array('edit'=>true, 'fileName'=>($fileName.'.backup')));
+						$hasBackup = (isset($page['backup'])) ? true : false;
+						$hasMainFile = (isset($page['mainFile'])) ? true : false;
+						?>
+						<tr <?php if ($hasBackup and !$hasMainFile) { echo 'class="warning text-muted"'; }?>>
+							<td>
+								<?php if ($hasBackup and !$hasMainFile) { ?><del class="tooltip-bottom" title="Ce fichier a été supprimé, mais il reste le backup"><?php } ?><?php echo $fileName; ?><?php if ($hasBackup and !$hasMainFile) { ?></del><?php } ?>
+							</td>
+							<td>
+								<?php
+								if ($hasBackup and !$hasMainFile){
+									echo 'Ce fichier a été supprimé, mais il reste le backup';
+								}elseif ($hasBackup){
+									echo 'Backup présent';
+								}else{
+									echo 'Pas de backup';
+								}
+								?>
+							</td>
+							<td>
+								<?php if ($hasMainFile) { ?>
+								<a class="btn btn-default btn-sm" href="<?php echo $urlEdit; ?>">Modifier</a>
+								<div class="btn-group">
+									<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+										Supprimer <span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										<li><a href="<?php echo $urlDel; ?>" class="tooltip-right" title="Vous pourrez restaurer la page d'après le backup"><span class="text-warning">Supprimer le fichier mais conserver le backup</span></a></li>
+										<li><a href="<?php echo $urlDel; ?>&removeBackup" class="tooltip-right text-danger" title="Attention : cette action est irréversible !"><span class="text-danger">Supprimer le fichier et le backup</span></a></li>
+									</ul>
+								</div>
+								<?php } ?>
+								<?php if ($hasBackup) { ?>
+								<a class="btn btn-warning btn-sm tooltip-top" title="Attention : cette action est irréversible" href="<?php echo $urlbackupActions; ?>&request=restoreBackup">Restaurer le backup</a>
+									<?php if (!$hasMainFile) { ?>
+										<a class="btn btn-danger btn-sm tooltip-top" title="Attention : cette action est irréversible" href="<?php echo $urlbackupActions; ?>&request=delBackup">Supprimer le backup</a>
+									<?php } ?>
+								<?php } ?>
+							</td>
+						</tr>
+						<?php
+					}
+					?>
+				</table>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<form class="form-inline">
+					<div class="form-group">
+						<label class="control-label" for="fileName">Créer une page</label>
+						<div class="input-group">
+							<input type="text" class="form-control input-sm" placeholder="Nouvelle page" name="fileName" required>
+					      <span class="input-group-btn">
+					        <button class="btn btn-default btn-sm" type="submit" name="request" value="createPage">Créer</button>
+					      </span>
+						</div><!-- /input-group -->
+					</div>
+				</form>
+			</div>
+		</div>
+		<?php
+		$this->currentTheme->toHTMLFooter();
 	}
 
 	/**
@@ -177,7 +377,7 @@ class ContentManager {
 			}
 		}
 		//$themeClass = '\\Themes\\'.$theme;
-		Edit::header();
+		$this->currentTheme->toHTMLHeader();
 		//$page->toHTMLHeader();
 		?><h2>Edition de la page <code><?php echo $page->getTitle(); ?></code></h2><?php
 
@@ -186,21 +386,14 @@ class ContentManager {
 			<div class="col-md-12" id="page_<?php echo $page->getFileName(); ?>">
 				<div class="panel panel-default">
 					<div class="panel-body">
-						<form class="well form-horizontal" action="<?php echo $settings->editURL; ?>#page_<?php echo $page->getFileName(); ?>">
+						<form class="well form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#page_<?php echo $page->getFileName(); ?>" method="post">
 							<div class="form-group">
-								<label class="col-sm-5 control-label" for="cssFile">Style à appliquer</label>
+								<label class="col-sm-5 control-label" for="pageTitle">Titre</label>
 								<div class="col-sm-5">
-									<select class="form-control" id="cssFile" name="cssFile" required>
-										<?php
-										foreach ($cssFiles as $cssFile){
-											?><option <?php if ($cssFile == $page->getCssFile()) echo 'selected'; ?>><?php echo $cssFile; ?></option><?php
-										}
-										?>
-									</select>
+									<input type="text" class="form-control" id="pageTitle" name="pageTitle" value="<?php echo $page->getTitle(); ?>" required>
 								</div>
 							</div>
 							<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
-							<input type="hidden" name="edit">
 							<button type="submit" class="btn btn-primary" name="request" value="savePage">Enregistrer</button>
 						</form>
 					</div>
@@ -211,38 +404,66 @@ class ContentManager {
 		<?php
 		$nbRows = 0;
 		/** @var Row $row */
-		foreach ($page->getRows() as $index => $row){
-			// Nouvelle ligne avant le bloc référent
-			if ($refRow == $row->getId() and $rowPosition == 'before'){
+		if (!empty($page->getRows())){
+			foreach ($page->getRows() as $index => $row){
+				// Nouvelle ligne avant le bloc référent
+				if ($refRow == $row->getId() and $rowPosition == 'before'){
+					$nbRows++;
+					$addRow = new Row('newRow', $fileName);
+					$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()));
+					// even (impair) number
+					if ($nbRows%2 != 1){
+						?><div class="clearfix"></div><?php
+					}
+				}
 				$nbRows++;
-				$addRow = new Row('newRow', $fileName);
-				$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()));
+				$this->editRow($row, $fileName, $page->getRowPosition($row->getId()));
 				// even (impair) number
 				if ($nbRows%2 != 1){
 					?><div class="clearfix"></div><?php
 				}
-			}
-			$nbRows++;
-			$this->editRow($row, $fileName, $page->getRowPosition($row->getId()));
-			// even (impair) number
-			if ($nbRows%2 != 1){
-				?><div class="clearfix"></div><?php
-			}
-			// Nouveau row après le bloc référent
-			if ($refRow == $row->getId() and $rowPosition == 'after'){
-				$nbRows++;
-				$addRow = new Row('newRow', $fileName);
-				$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()) + 1);
-				// even (impair) number
-				if ($nbRows%2 != 1){
-					?><div class="clearfix"></div><?php
+				// Nouveau row après le bloc référent
+				if ($refRow == $row->getId() and $rowPosition == 'after'){
+					$nbRows++;
+					$addRow = new Row('newRow', $fileName);
+					$this->editRow($addRow, $fileName, $page->getRowPosition($row->getId()) + 1);
+					// even (impair) number
+					if ($nbRows%2 != 1){
+						?><div class="clearfix"></div><?php
+					}
 				}
 			}
+		}else{
+			// New row
+			$addRow = new Row('newRow', $fileName);
+			$this->editRow($addRow, $fileName, 0);
 		}
+		?>
+		<!-- Modal -->
+		<div class="modal fade" id="mediaManagerModal" tabindex="-1" role="dialog" aria-labelledby="MediaManager" data-ajaxToLoad="<?php echo $settings->absoluteURL.'/?ajax=showMediaManager'; ?>">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">Gestionnaire de medias</h4>
+					</div>
+					<div class="modal-body">
+					</div>
+					<!--<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+						<button type="button" class="btn btn-primary"></button>
+					</div>-->
+				</div>
+			</div>
+		</div>
+		<?php
 		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
+		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
-		\Template::addJsToFooter('<script>$(\'textarea\').pagedownBootstrap();</script>');
-		Edit::footer();
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
+		$this->currentTheme->toHTMLFooter();
 	}
 
 	/**
@@ -269,7 +490,7 @@ class ContentManager {
 			<div class="col-md-12" id="row_<?php echo $row->getId(); ?>">
 				<div class="panel panel-default">
 					<div class="panel-body">
-						<form class="well form-horizontal" action="<?php echo $settings->editURL; ?>#row_<?php echo $row->getId(); ?>">
+						<form class="well form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#row_<?php echo $row->getId(); ?>" method="post">
 							<h3><?php if (!$row->isUnsaved()) { ?>Ligne <code><?php echo $row->getTitle(); ?></code><?php } else { ?>Ajouter une nouvelle ligne<?php }?></h3>
 							<div class="form-group">
 								<label class="col-sm-5 control-label" for="row_<?php echo $row->getId(); ?>_newId">ID</label>
@@ -280,7 +501,6 @@ class ContentManager {
 							<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
 							<input type="hidden" name="rowId" value="<?php echo $row->getId(); ?>">
 							<input type="hidden" name="position" value="<?php echo $rowPosition; ?>">
-							<input type="hidden" name="edit">
 							<button type="submit" class="btn btn-primary" name="request" value="saveRow">Enregistrer</button>
 							<?php if ($row->getId() != 'newRow'){ ?>
 								<button type="submit" name="request" value="delRow" class="btn btn-danger">Supprimer</button>
@@ -359,7 +579,7 @@ class ContentManager {
 		global $settings, $blockTypes;
 		?>
 		<div class="col-lg-6" id="block_<?php echo $block->getFullId(); ?>">
-			<form class="well <?php if ($block->IsUnsaved()) { ?>well-warning<?php } ?> form-horizontal" action="<?php echo $settings->editURL; ?>#block_<?php echo $block->getFullId(); ?>">
+			<form class="well <?php if ($block->IsUnsaved()) { ?>well-warning<?php } ?> form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#block_<?php echo $block->getFullId(); ?>" method="post">
 				<?php $block->getExcerpt(); ?>
 				<?php
 				if ($block->isUnsaved()){
@@ -449,7 +669,6 @@ class ContentManager {
 					<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
 					<input type="hidden" name="blockFullId" value="<?php echo $block->getFullId(); ?>">
 					<input type="hidden" name="position" value="<?php echo $position; ?>">
-					<input type="hidden" name="edit">
 					<button type="submit" class="btn btn-primary" name="request" value="saveBlock">Enregistrer</button>
 					<?php if (!$block->isUnsaved()){ ?>
 						<button type="submit" name="request" value="delBlock" class="btn btn-danger">Supprimer</button>
@@ -479,20 +698,50 @@ class ContentManager {
 	}
 
 	public function processRequest(){
-		if (!isset($_REQUEST['fileName']) and !isset($_REQUEST['page'])){
+		global $requestedPage;
+		if (!isset($_REQUEST['fileName']) and !isset($_REQUEST['page']) and empty($requestedPage)){
 			new Alert('error','Erreur : la page n\'est pas renseignée.');
 			return false;
 		}
 		var_dump($_REQUEST);
-		$fileName = (isset($_REQUEST['fileName'])) ? $_REQUEST['fileName'] : $_REQUEST['page'] ;
+		$fileName = (isset($_REQUEST['fileName'])) ? $_REQUEST['fileName'] : ((isset($_REQUEST['page'])) ? $_REQUEST['page'] : $requestedPage) ;
 		$position = (isset($_REQUEST['position'])) ? (int)$_REQUEST['position'] : null;
-		$page = $this->addPageFromJSON($fileName);
-
+		$page = null;
+		$ret = false;
+		$dontSavePage = false;
+		if (!in_array($_REQUEST['request'], array('delPage', 'restoreBackup', 'createPage', 'saveSiteSettings'))){
+			$page = $this->addPageFromJSON($fileName);
+		}
 		switch ($_REQUEST['request']){
-			case 'savePage':
-				if (isset($_REQUEST['cssFile'])){
-					$page->setCssFile(\Sanitize::SanitizeForDb($_REQUEST['cssFile'], false));
+			case 'saveSiteSettings':
+				$siteSettings = array_intersect_key($_REQUEST, array_flip(array('theme', 'mainPage')));
+				$this->saveSiteSettings($siteSettings);
+				// We load settings again
+				$this->populateSiteSettings();
+				$dontSavePage = true;
+				break;
+			case 'createPage':
+				if (!in_array($fileName, array('site', 'pages'))){
+					$page = new Page($fileName.'.json');
+				}else{
+					New Alert('error', 'Erreur : le nom de page <code>'.$fileName.'</code> est réservé et ne peut pas être utilisé !');
+					$dontSavePage = true;
 				}
+				break;
+			case 'savePage':
+				if (isset($_REQUEST['pageTitle'])) $page->setTitle($_REQUEST['pageTitle']);
+				break;
+			case 'delPage':
+				if (isset($_REQUEST['removeBackup'])){
+					$ret = $this->delPage($fileName, true);
+				}else{
+					$ret = $this->delPage($fileName);
+				}
+				$dontSavePage = true;
+				break;
+			case 'restoreBackup':
+					$ret = $this->restoreBackup($fileName);
+					$dontSavePage = true;
 				break;
 			case 'saveRow':
 				if (!isset($_REQUEST['rowId'])){
@@ -594,11 +843,13 @@ class ContentManager {
 				$page->getRows()[$rowId]->moveBlock($blockId, $blockMove);
 				break;
 		}
-		$ret = $this->saveContent($page);
-		if ($ret === true){
-			new Alert('success', 'Page sauvegardée !');
-		}else {
-			new Alert('error', 'Page non sauvegardée !');
+		if (!$dontSavePage){
+			$ret = $this->savePage($page);
+			if ($ret === true){
+				new Alert('success', 'Page sauvegardée !');
+			}else {
+				new Alert('error', 'Page non sauvegardée !');
+			}
 		}
 		return $ret;
 	}
@@ -630,10 +881,25 @@ class ContentManager {
 		}
 	}
 
+	protected function populatePages(){
+		$fs = new Fs($this->contentDir);
+		$JSONPages = $fs->getFilesInDir(null, 'json', array('extension'), true);
+		/** @var File $JSONPage */
+		foreach ($JSONPages as $JSONPage){
+			if ($JSONPage->name != 'siteSettings' and $JSONPage->name != 'siteSettings.json'){
+				$page = $this->addPageFromJSON($JSONPage->baseName);
+				if ($page !== false){
+					$this->pages[$JSONPage->baseName] = $page->getTitle();
+				}
+			}
+		}
+		return true;
+	}
+
 	protected function populateThemes(){
 		global $settings;
 		$fs = new Fs($settings->absolutePath.DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'Content'.DIRECTORY_SEPARATOR.'Themes');
-		$this->themes[] = $fs->getSubDirsIndDir();
+		$this->themes = $fs->getSubDirsIndDir();
 	}
 
 	/**
@@ -649,5 +915,63 @@ class ContentManager {
 	public function getThemes() {
 		return $this->themes;
 	}
+
+	public function ajaxMediaManager($mediaDir = null, $allowedExt = array()){
+		global $settings;
+		$mediaDir = (!empty($mediaDir)) ? $mediaDir : $this->contentDir.DIRECTORY_SEPARATOR.'Files';
+		$mediaURL = str_replace($this->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $mediaDir);
+		$fs = new Fs($mediaDir);
+		$files = $fs->getFilesInDir(null, null, array('extension'), true);
+		?>
+		<!-- nav tabs -->
+		<ul class="nav nav-tabs" id="myTabs">
+			<li class="active"><a href="#upload" data-toggle="tab">Charger un média</a></li>
+			<li><a href="#library" data-toggle="tab">Médiathèque</a></li>
+		</ul>
+
+		<!-- tab panes -->
+		<div class="tab-content">
+			<div class="tab-pane active fade in" id="upload">
+				<p>upload area is here...... will be here.....</p>
+				<button class="btn btn-info">Add Files</button>
+			</div>
+
+			<!-- library tab -->
+			<div class="tab-pane fade" id="library">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<td>Image</td>
+							<td>Nom</td>
+							<td>Actions</td>
+						</tr>
+					</thead>
+					<tbody>
+					<?php
+					/** @var File $file */
+					foreach ($files as $file){
+						if ((!empty($allowedExt) and in_array($file->extension, $allowedExt)) or empty($allowedExt)){
+							?>
+							<tr>
+								<td><img class="mediaThumb img-rounded" src="<?php echo $mediaURL.'/'.$file->baseName; ?>" alt="<?php echo $file->name; ?>"></td>
+								<td><?php echo $file->name; ?></td>
+								<td>
+									<button class="mediaInsert btn btn-default" data-image-id="<?php echo $mediaURL.'/'.$file->baseName; ?>">Insérer</button>
+								</td>
+							</tr>
+							<?php
+						}
+					}
+					?>
+					</tbody>
+				</table>
+				<div class="clearfix"></div>
+				<!-- insert button -->
+				<button type="button" class="btn btn-sm btn-info insert">Insérer</button>
+			</div><!-- end .library -->
+		</div><!-- end tab-content -->
+		<?php
+	}
+
 
 }

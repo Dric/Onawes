@@ -29,4 +29,10 @@ function isFunction(possibleFunction) {
 	return typeof(possibleFunction) === typeof(Function);
 }
 
+
+$("#menu-toggle").click(function(e) {
+	e.preventDefault();
+	$("#wrapper").toggleClass("toggled");
+});
+
 toolTips();

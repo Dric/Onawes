@@ -1,9 +1,8 @@
 {
-    "title": "index.json",
+    "title": "Index",
     "CSSClasses": [
 
     ],
-    "cssFile": "onawes.css",
     "theme": null,
     "rows": {
         "Test_it_raw_dude": {
@@ -12,28 +11,7 @@
             "tag": "div",
             "CSSClasses": [
 
-            ],
-            "blocks": {
-                "test_it": {
-                    "type": "HTML",
-                    "title": "Joe",
-                    "titleLevel": 0,
-                    "id": "test_it",
-                    "tag": "div",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 0,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": "test it Joe !"
-                    }
-                }
-            }
+            ]
         },
         "Pres": {
             "title": "Pres",
@@ -59,7 +37,7 @@
                         "lg": 0
                     },
                     "properties": {
-                        "content": null
+                        "content": "Test tes testsetsetse"
                     }
                 },
                 "PresBlock": {

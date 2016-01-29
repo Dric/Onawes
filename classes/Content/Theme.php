@@ -8,64 +8,102 @@
  */
 namespace Content;
 
-class Theme {
-	static protected $title = 'Administration';
-	static protected $cssFile = 'onawes.css';
+use FileSystem\File;
+use FileSystem\Fs;
+use Template;
 
-	public static function header($cssFile = null){
+class Theme {
+	protected $title = 'Administration';
+	/**
+	 * @var string[]
+	 */
+	protected $cssFiles = array();
+	protected $path = null;
+	protected $urlThemeBase = null;
+
+	public function __construct(){
 		global $settings;
-		$titleLink = $settings->editURL;
-		if (empty($cssFile)) $cssFile = self::$cssFile;
-		Template::header($cssFile, self::$title);
+		$this->path = $settings->absolutePath.DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'Content'.DIRECTORY_SEPARATOR.'Themes'.DIRECTORY_SEPARATOR.str_replace('Content\\Themes\\', '', get_called_class());
+		$this->urlThemeBase = $settings->absoluteURL.'/classes/Content/Themes/'.str_replace('Content\\Themes\\', '', get_called_class());
+		$this->populateCssFiles();
+	}
+
+	public function toHTMLHeader($cssFiles = null){
+		global $settings;
+		if (empty($cssFiles)) $cssFiles = $this->cssFiles;
+		Template::header($cssFiles, $this->title);
 		?>
 		<body>
-			<div id="wrapper">
-				<!-- Si javascript n'est pas activé, on prévient l'utilisateur que ça peut merder... -->
-				<noscript>
-					<div class="alert alert-info">
-						<p>Ce site ne fonctionnera pas sans Javascript !</p>
-					</div>
-					<style>
-						.tab-content>.tab-pane{
-							display: block;
-						}
-					</style>
-				</noscript>
-				<div id="page-content-wrapper" class="container">
-					<div class="content-header row">
-						<div class="col-md-12">
-							<h1>
-								<a href="<?php echo self::getTitleURL(); ?>"><?php echo $settings->scriptTitle; ?></a> <a href="<?php echo $settings->absoluteURL; ?>" title="Revenir au site" class="btn btn-sm btn-default"><i class="fa fa-link"></i></a>
-							</h1>
-						</div>
-					</div>
-					<div class="page-content inset row">
+		<div id="wrapper">
+		<!-- Si javascript n'est pas activé, on prévient l'utilisateur que ça peut merder... -->
+		<noscript>
+			<div class="alert alert-info">
+				<p>Ce site ne fonctionnera pas sans Javascript !</p>
+			</div>
+			<style>
+				.tab-content>.tab-pane{
+					display: block;
+				}
+			</style>
+		</noscript>
+		<div id="page-content-wrapper" class="container">
+		<div class="content-header row">
+			<div class="col-md-12">
+				<h1>
+					<a href="<?php echo $settings->absoluteURL; ?>"><?php echo $settings->scriptTitle; ?></a>
+				</h1>
+			</div>
+		</div>
+		<div class="page-content inset row">
 		<?php
 	}
 
-	public static function footer(){
+	public function toHTMLFooter(){
 		global $settings;
 		?>
-					</div>
-				</div>
-				<footer>
-					<?php Template::footer(); ?>
-					<?php if ($settings->debug) echo ' | Mode debug activé | '; ?>
-					<abbr class="tooltip-top" title="Oh No, Another Website Editor System !">Onawes</abbr> 2016
-				</footer>
-			</div>
-			<?php Template::jsFooter(); ?>
+		</div>
+		</div>
+		<footer>
+			<?php Template::footer(); ?>
+			<?php if ($settings->debug) echo ' | Mode debug activé | '; ?>
+			<abbr class="tooltip-top" title="Oh No, Another Website Editor System !">Onawes</abbr> 2016
+		</footer>
+		</div>
+		<?php Template::jsFooter(); ?>
 		</body>
 		<?php
 	}
 
-	protected static function getTitleURL(){
+	public function getTitleURL(){
 		global $settings;
-		$url = strtolower(str_replace('Themes\\', '', get_called_class()));
+		$url = strtolower(str_replace('Content\\Themes\\', '', get_called_class()));
 		if ($settings->prettyURL){
 			return $settings->absoluteURL.DIRECTORY_SEPARATOR.$url;
 		}else{
 			return $settings->absoluteURL.DIRECTORY_SEPARATOR.'?page='.$url;
 		}
+	}
+
+	public function populateCssFiles(){
+		$fs = new Fs($this->path);
+		$cssFiles = $fs->getFilesInDir(null,'css', array('extension'), true);
+		/** @var File $cssFile */
+		foreach ($cssFiles as $cssFile){
+			if (!in_array($cssFile->baseName, $this->cssFiles))	$this->cssFiles[] = $this->urlThemeBase.'/'.$cssFile->baseName;
+		}
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getPath() {
+		return $this->path;
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getUrlThemeBase() {
+		return $this->urlThemeBase;
 	}
 }

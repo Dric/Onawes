@@ -13,6 +13,12 @@ use Alerts\Alert;
  * Objet fichier
  *
  * @package FileSystem
+ *
+ * @property-read string  $name       File name without extension
+ * @property-read string  $baseName   File name with extension
+ * @property-read string  $fullName   File name with complete path
+ * @property-read string  $extension  File extension
+ *
  */
 class File {
 
@@ -39,6 +45,8 @@ class File {
 	 * @param string  $mountName Répertoire du fichier
 	 * @param string  $fileName Nom du fichier
 	 * @param array   $filters Filtrage de propriétés, certaines d'entre elles pouvant être lentes à récupérer
+	 *
+	 *
 	 */
 	public function __construct($mountName, $fileName, array $filters = array()){
 		$this->name = pathinfo($fileName, PATHINFO_FILENAME);

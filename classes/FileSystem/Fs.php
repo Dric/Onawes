@@ -491,4 +491,38 @@ class Fs {
 	public function getMountName() {
 		return $this->mountName;
 	}
+
+	public function removeFile($fileName, $removeBackup = false){
+		$ret = @unlink($this->mountName . DIRECTORY_SEPARATOR . $fileName);
+		if ($removeBackup){
+			$ret2 = @unlink($this->mountName . DIRECTORY_SEPARATOR . $fileName . '.backup');
+			if (!$ret2){
+				New Alert('error', 'Erreur : impossible de supprimer le fichier backup de <code>'.$fileName.'</code>');
+				return $ret2;
+			}
+		}
+		if (!$ret){
+			New Alert('error', 'Erreur : impossible de supprimer le fichier <code>'.$fileName.'</code>');
+			return $ret;
+		}
+		return true;
+	}
+
+	public function renameFile($oldFileName, $newFileName){
+		$ret = @rename($this->mountName . DIRECTORY_SEPARATOR .$oldFileName, $this->mountName . DIRECTORY_SEPARATOR .$newFileName);
+		if (!$ret){
+			New Alert('error', 'Erreur : impossible de renommer le fichier <code>'.$oldFileName.'</code> en <code>'.$newFileName.'</code>');
+			return $ret;
+		}
+		return true;
+	}
+
+	public function copyFile($FileNameOrig, $newFileName){
+		$ret = @copy($this->mountName . DIRECTORY_SEPARATOR .$FileNameOrig, $this->mountName . DIRECTORY_SEPARATOR .$newFileName);
+		if (!$ret){
+			New Alert('error', 'Erreur : impossible de copier le fichier <code>'.$FileNameOrig.'</code> vers <code>'.$newFileName.'</code>');
+			return $ret;
+		}
+		return true;
+	}
 } 

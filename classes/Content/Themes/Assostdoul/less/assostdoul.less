@@ -1,0 +1,200 @@
+
+// External
+@import "../../../../../css/less/bootstrap/bootstrap.less";
+@import "../../../../../css/less/font-awesome/font-awesome.less";
+
+
+@import "variables.less";
+@import "../../../../../css/less/front.less";
+
+body {
+  padding-top: 60px;
+  background-image: url("Content/Themes/Assostdoul/img/bg.png");
+}
+#carousel{
+  display: none;
+}
+.carousel .item{
+  height: 290px;
+  overflow: hidden;
+}
+#carousel-loading{
+  padding-top: 200px;
+  font-size: 3em;
+}
+.carousel .item img{
+  max-height: 100%;
+  max-width: 100%;
+  margin: auto;
+}
+.space-top{
+  margin-top: 40px;
+}
+#logo-text{
+  margin-top: 60px;
+}
+.news{
+  background-color: @gray-base;
+  //color: @grayDarker;
+  margin-bottom: 10px;
+  //border-left: 6px solid @link-color;
+  width: 100%;
+
+}
+.section-image{
+  border: 2px solid @link-color;
+}
+.sections{
+  padding: 20px;
+}
+#sections h2{
+  padding-left: 20px;
+}
+.news-wrap{
+
+}
+.news{
+  line-height: 26px;
+}
+.news-cat{
+  margin-left: 0;
+  background-color: @link-color;
+  color: @gray-darker;
+  padding: 4px 10px;
+  width: 4.9em;
+  text-align: center;
+  height: 100%;
+  vertical-align: top;
+  float: left;
+}
+.news-title{
+  //max-width: 50em;
+  padding: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  white-space: nowrap;
+
+}
+.news-date{
+  color: @gray;
+  font-size: 80%;
+  float: right;
+  padding: 4px;
+}
+.news-expand{
+  color: @gray-lighter;
+  //width: 10%;
+  text-align: right;
+  padding: 4px;
+  float: right;
+}
+.news-expand i{
+  cursor: pointer;
+}
+.news-expand a:hover{
+  text-decoration: none;
+}
+.news-details{
+  padding: 0 8px;
+}
+.news .in{
+  padding: 8px;
+}
+.nav-collapse{
+  float: right;
+}
+.small{
+  font-size: 80%;
+}
+.help-summary{
+  cursor: pointer;
+}
+#logo{
+  margin-top: -60px;
+  background-color: @gray-base;
+  padding-bottom: 20px;
+}
+
+#logo #asso-logo{
+  z-index: 1035;
+  position: relative;
+  width: 200px;
+  height: 225px;
+  background-color: @gray-base;
+  padding: 0px 6px;
+}
+#sports-logos{
+  z-index: 1035;
+}
+.navbar-inner{
+  margin-left: 0px;
+}
+#partenaires img{
+  width: 150px;
+  height: auto;
+  padding: 4px;
+}
+
+#pres-asso{
+  margin: 40px;
+  border: 2px solid @link-color;
+  border-radius: @border-radius-base;
+  margin-left: 20px;
+}
+
+.required{
+  color: Red;
+}
+
+#map-canvas img{
+  border: 2px solid @link-color;
+}
+
+.modal, .modal-footer{
+  background: @body-bg url("Content/Themes/Assostdoul/img/bg.png");
+}
+.popover, .popover-title{
+  background-color: @gray-base;
+}
+.admin-img{
+  width: 200px;
+  border: 2px solid @link-color;
+}
+
+/* For Responsive design */
+
+@media (max-width: 767px){
+  .navbar{
+    margin-left:-20px;
+    margin-right:-20px;
+  }
+  .navbar .nav{
+    border:0px !important;
+  }
+  .navbar .nav > li > a{
+    border:0px !important;
+  }
+  .dropdown-menu a{
+    border-bottom:none !important;
+  }
+  body { padding-top: 0px; }
+  #logo{
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 979px){
+  .navbar .nav{
+    border:0px !important;
+  }
+  .navbar .nav > li > a{
+    border:0px !important;
+  }
+  .dropdown-menu a{
+    border-bottom:none !important;
+  }
+  #logo{
+    display: none;
+  }
+}

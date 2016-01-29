@@ -40,9 +40,9 @@ class Template {
 	 */
 	protected static $jsFooter = array();
 
-	public static function header($cssFile = null, $subTitle = ''){
+	public static function header($cssFiles = null, $subTitle = ''){
 		global $settings;
-		if (empty($cssFile)) $cssFile = 'onawes.css';
+		if (empty($cssFiles)) $cssFiles = array('onawes.css');
 		?>
 		<head>
 			<meta charset="utf-8">
@@ -58,7 +58,9 @@ class Template {
 			<title><?php echo $settings->scriptTitle; if (!empty($subTitle)) echo ' - '.$subTitle; ?></title>
 
 			<!-- The CSS -->
-			<link href="<?php echo $settings->absoluteURL; ?>/css/<?php echo $cssFile; ?>" rel="stylesheet">
+			<?php foreach ($cssFiles as $cssFile){ ?>
+				<link href="<?php echo $cssFile; ?>" rel="stylesheet">
+			<?php } ?>
 			<?php self::cssHeader(); ?>
 			<?php
 			// On ajoute le contenu de $header
@@ -178,5 +180,55 @@ class Template {
 	 */
 	public static function addJsToFooter($js) {
 		self::$jsFooter[] = $js;
+	}
+
+	/**
+	 * @param array $args array('edit' => true, 'page' => 'index.json')
+	 *
+	 * @return string
+	 */
+	public static function createURL(Array $args){
+		global $settings;
+		$urlArgs = array();
+		$page = null;
+		$edit = false;
+		foreach ($args as $arg => $value){
+			switch ($arg){
+				case 'edit':
+					$edit = true;
+					break;
+				case 'page':
+					$page = $value;
+					break;
+				default:
+					$urlArgs[$arg] = (empty($value)) ? true : $value;
+			}
+		}
+		$ret = $settings->absoluteURL.DIRECTORY_SEPARATOR;
+		if ($settings->prettyURL){
+			if ($edit){
+				$ret .= 'edit'.DIRECTORY_SEPARATOR;
+			}
+			if (!empty($page)){
+				$ret .= $page.DIRECTORY_SEPARATOR;
+			}
+			$ret .= '?';
+			foreach ($urlArgs as $arg => $value){
+				$ret .= $arg.'='.$value.'&';
+			}
+		}else{
+			$ret .= '?';
+			if ($edit){
+				$ret .= 'edit&';
+			}
+			if (!empty($page)){
+				$ret .= 'page='.$page.'&';
+			}
+			foreach ($urlArgs as $arg => $value){
+				$ret .= $arg.'='.$value.'&';
+			}
+		}
+		$ret = rtrim($ret, '?&');
+		return $ret;
 	}
 }

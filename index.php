@@ -1,4 +1,6 @@
 <?php
+ini_set("display_errors", 1);
+error_reporting(-1);
 /**
  * Created by PhpStorm.
  * User: Dric
@@ -14,8 +16,7 @@ spl_autoload_register(function ($class) {
 });
 // Définition de quelques variables
 $isHTTPS = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'];
-$absURL = rtrim((($isHTTPS) ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['PHP_SELF']), '/');
-
+$absURL = rtrim((($isHTTPS) ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['SCRIPT_NAME']), '/');
 $args = array(
 	'absolutePath'  => realpath(dirname(__FILE__)),
 	'absoluteURL'   => $absURL,
@@ -31,29 +32,36 @@ if ('classes/LocalSettings.php'){
 }else{
 	$settings = new Settings($args);
 }
-//session_start();
-
-$Content = new \Content\ContentManager();
-
-$blockTypes = $Content->getBlockTypes();
-$cssFiles = $Content->getCssFiles();
-$themes = $Content->getThemes();
 
 $adminMode = false;
-$requestedPage = 'index.json';
-
+$requestedPage = null;
 
 if ($settings->prettyURL) {
-	$exp = '#'.str_replace('/', '\\/', str_replace('index.php', '',  $_SERVER['PHP_SELF'])).'(\w*)(?:\/|)(.*)#is';
+	/*
+	 * Test it on regex101.com
+	 * regex = (edit|)(?:\/|)([a-z-A-Z.]*)(?:\/|)(\?.*|)
+	 * tests :
+	 *  * edit/index.json/?request=delPage&test=true
+	 *  * edit
+	 *  * edit/index.json/
+	 *  * edit/?request=delPage&test=true
+	 *  * index.json
+	 *  * ?request=delPage&test=true
+	 * Returns (for 1st test) :
+	 * 1.	`edit`
+	 * 2.	`index.json`
+	 * 3.	`?request=delPage&test=true`
+	 */
+	$exp = '#'.str_replace('/', '\\/', str_replace('index.php', '',  $_SERVER['SCRIPT_NAME'])).'(edit|)(?:\/|)([a-z-A-Z.]*)(?:\/|)(\?.*|)#is';
 	if (preg_match($exp, $_SERVER['REQUEST_URI'], $match)) {
 		header("Status: 200 OK", false, 200);
-		if ($match[1] == 'edit') {
+		if (!empty($match[1]) and $match[1] == 'edit'){
 			$adminMode = true;
-		}elseif (!empty($match[1])){
-			$requestedPage = $match[1];
-		}elseif (isset($match[2]) and !empty($match[2])) {
-			$requestedPage = $match[2];
 		}
+		if (isset($match[2]) and !empty($match[2])) {
+			$requestedPage = str_replace('/', '', $match[2]);
+		}
+		// $match[3] is the same as $_REQUEST
 	}
 }else{
 	if (isset($_REQUEST['page'])){
@@ -64,6 +72,25 @@ if ($settings->prettyURL) {
 	}
 }
 
+//session_start();
+$Content = new \Content\ContentManager();
+$blockTypes = $Content->getBlockTypes();
+$cssFiles = $Content->getCssFiles();
+$themes = $Content->getThemes();
+
+if (isset($_REQUEST['ajax'])){
+	switch ($_REQUEST['ajax']){
+		case 'showMediaManager':
+			$Content->ajaxMediaManager();
+			exit();
+	}
+}
+
+$themePHPClass = 'Content\\Themes\\'.$Content->getSiteSettings()['theme'];
+$theme = new $themePHPClass();
+if (empty($requestedPage)){
+	$requestedPage = $Content->getSiteSettings()['mainPage'];
+}
 
 if (isset($_REQUEST['request'])){
 	$Content->processRequest();
@@ -71,8 +98,14 @@ if (isset($_REQUEST['request'])){
 //$isLoggedIn = \Auth\Login::checkAuth();
 if ($adminMode){
 	switch ($requestedPage){
+		case 'homePage':
+			$Content->editHome();
+			break;
 		case 'pages':
 			$Content->listPages();
+			break;
+		case 'site':
+			$Content->editSite();
 			break;
 		default:
 			$page = $Content->addPageFromJSON($requestedPage);
@@ -85,7 +118,7 @@ if ($adminMode){
 }else{
 	$page = $Content->addPageFromJSON($requestedPage);
 	if ($page !== false)	{
-		$page->toHTML();
+		$page->toHTML($theme);
 	}else{
 		?><h1>Erreur : Impossible de charger la page <code><?php echo $requestedPage; ?></code> !</h1><?php
 	}

@@ -31,11 +31,6 @@ class Page {
 	 */
 	protected $rows = array();
 
-	/**
-	 * @var string
-	 */
-	protected $cssFile = null;
-
 	protected $theme = null;
 
 	/**
@@ -65,69 +60,16 @@ class Page {
 
 	/**
 	 * Display HTML content of page
+	 *
+	 * @param Theme $theme
 	 */
-	public function toHTML(){
-		$this->toHTMLHeader();
+	public function toHTML($theme){
+		$theme->toHTMLHeader();
 		/** @var Row $row */
 		foreach ($this->rows as $row){
 			$row->toHTML();
 		}
-		$this->toHTMLFooter();
-	}
-
-	public function toHTMLHeader(){
-		global $settings, $adminMode;
-		if ($adminMode){
-			$subtitle = 'Administration';
-			$titleLink = $settings->editURL;
-			$cssFile = 'onawes.css';
-		}else{
-			$subtitle = null;
-			$titleLink = null;
-			$cssFile = $this->cssFile;
-		}
-		Template::header($cssFile, $subtitle);
-		?>
-		<body>
-			<div id="wrapper">
-				<!-- Si javascript n'est pas activé, on prévient l'utilisateur que ça peut merder... -->
-				<noscript>
-					<div class="alert alert-info">
-						<p>Ce site ne fonctionnera pas sans Javascript !</p>
-					</div>
-					<style>
-						.tab-content>.tab-pane{
-							display: block;
-						}
-					</style>
-				</noscript>
-
-				<div id="page-content-wrapper" class="container">
-				<div class="content-header row">
-					<div class="col-md-12">
-						<h1>
-							<a href="<?php echo (!empty($titleLink)) ? $titleLink : $settings->absoluteURL; ?>"><?php echo $settings->scriptTitle; ?></a> <?php if ($adminMode){ ?><a href="<?php echo $settings->absoluteURL; ?>" title="Revenir au site" class="btn btn-sm btn-default"><i class="fa fa-link"></i></a><?php } ?>
-						</h1>
-					</div>
-				</div>
-				<div class="page-content inset row">
-		<?php
-	}
-
-	public function toHTMLFooter(){
-		global $settings;
-		?>
-		</div>
-		</div>
-		<footer>
-			<?php Template::footer(); ?>
-					<?php if ($settings->debug) echo ' | Mode debug activé | '; ?>
-					<abbr class="tooltip-top" title="Oh No, Another Website Editor System !">Onawes</abbr> 2016
-					</footer>
-				</div>
-					<?php Template::jsFooter(); ?>
-		</body>
-		<?php
+		$theme->toHTMLFooter();
 	}
 
 	public function toJSON(){
@@ -138,7 +80,6 @@ class Page {
 		$array = array(
 			'title'       => $this->title,
 			'CSSClasses'  => $this->CSSClasses,
-			'cssFile'     => $this->cssFile,
 			'theme'       => $this->theme
 		);
 		foreach ($this->rowsOrder as $rowId => $position){
@@ -299,29 +240,6 @@ class Page {
 		return (isset($this->rowsOrder[$rowId])) ? $this->rowsOrder[$rowId] : 0;
 	}
 
-	/**
-	 * @return string
-	 */
-	public function getCssFile() {
-		return $this->cssFile;
-	}
-
-	/**
-	 * @param string $cssFile
-	 *
-	 * @return bool
-	 */
-	public function setCssFile($cssFile) {
-		global $settings;
-		$fs = new Fs($settings->absolutePath.DIRECTORY_SEPARATOR.'css');
-		if ($fs->fileExists($cssFile)){
-			$this->cssFile = $cssFile;
-			return true;
-		}else{
-			new Alert('error', 'Erreur : le fichier CSS <code>'.$cssFile.'</code> n\'existe pas !');
-			return false;
-		}
-	}
 
 	/**
 	 * @return null

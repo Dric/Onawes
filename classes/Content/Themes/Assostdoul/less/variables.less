@@ -1,0 +1,98 @@
+//
+// Variables
+// --------------------------------------------------
+
+
+// Global values
+// --------------------------------------------------
+
+
+// Accent colors
+// -------------------------
+@blue:                  #049cdb;
+@blueDark:              #0064cd;
+@green:                 #46a546;
+@red:                   #9d261d;
+@yellow:                #ffc40d;
+@orange:                #f89406;
+@pink:                  #c3325f;
+@purple:                #7a43b6;
+@white:                 #ffffff;
+@brand-primary:         darken(#428bca, 6.5%); // #337ab7
+@brand-success:         #5cb85c;
+@brand-info:            #5bc0de;
+@brand-warning:         #f0ad4e;
+@brand-danger:          #d9534f;
+
+
+// Scaffolding
+// -------------------------
+//** Background color for `<body>`.
+@body-bg:               @gray-darker;
+@text-color:            @gray-lighter;
+
+
+// Links
+// -------------------------
+@link-color:             #FFE100;
+@link-hover-color:        @white;
+
+
+// Typography
+// -------------------------
+@font-family-sans-serif:        "Segoe UI", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+@font-family-serif:       Georgia, "Times New Roman", Times, serif;
+@font-family-monospace:        Monaco, Menlo, Consolas, "Courier New", monospace;
+@font-family-base:        @font-family-sans-serif;
+
+@font-size-base:          16px;
+
+@font-size-large:         ceil((@font-size-base * 1.25)); // ~18px
+@font-size-small:         ceil((@font-size-base * 0.85)); // ~12px
+
+//** Unit-less `line-height` for use in components like buttons.
+@line-height-base:        1.428571429; // 20/14
+//** Computed "line-height" (`font-size` * `line-height`) for use with `margin`, `padding`, etc.
+@line-height-computed:    floor((@font-size-base * @line-height-base)); // ~20px
+
+//** By default, this inherits from the `<body>`.
+@headings-font-family:    inherit;
+@headings-font-weight:    400;
+@headings-line-height:    1.1;
+@headings-color:          @link-color;
+
+@padding-base-vertical:     6px;
+@padding-base-horizontal:   12px;
+
+@padding-large-vertical:    11px;
+@padding-large-horizontal:  19px;
+
+@padding-small-vertical:    2px;
+@padding-small-horizontal:  10px;
+
+@padding-xs-vertical:       1px;
+@padding-xs-horizontal:     6px;
+
+
+@border-radius-base:        2px;
+@border-radius-large:       4px;
+@border-radius-small:       1px;
+
+
+
+//== Buttons
+//
+//## For each of Bootstrap's buttons, define text, background and border color.
+
+@btn-font-weight:                normal;
+
+@btn-default-color:              @gray-dark;
+@btn-default-bg:                 @link-color;
+@btn-default-border:             @gray-base;
+
+@btn-primary-color:              #fff;
+@btn-primary-bg:                 @link-color;
+@btn-primary-border:             darken(@btn-primary-bg, 5%);
+
+
+
