@@ -39,6 +39,8 @@ class HTMLBlock extends Block{
 			$content = MarkdownExtra::defaultTransform($this->content);
 			// Gestion des antislashes dans les balises code (les antislashes sont doublés dans ces cas-là par le système)
 			$content = str_replace('\\\\', '\\', $content);
+			// Passer les images en responsive
+			$content =  str_replace('<img ', '<img class="img-responsive" ', $content);
 		}else{
 			$content = $this->content;
 		}

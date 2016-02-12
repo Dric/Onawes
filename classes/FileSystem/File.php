@@ -49,7 +49,7 @@ class File {
 	 *
 	 */
 	public function __construct($mountName, $fileName, array $filters = array()){
-		$this->name = pathinfo($fileName, PATHINFO_FILENAME);
+		$this->name = rtrim(str_replace(pathinfo($fileName, PATHINFO_EXTENSION), '', pathinfo($fileName, PATHINFO_FILENAME)), '.');
 		$this->baseName = $fileName;
 		$this->fullName = rtrim($mountName, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR. $fileName;
 		if (file_exists($this->fullName)){
@@ -332,7 +332,7 @@ class File {
 	 */
 	public function display(){
 		$this->displayIcon();
-		echo '&nbsp;'.$this->name;
+		echo '&nbsp;'.$this->baseName;
 	}
 
 	/**

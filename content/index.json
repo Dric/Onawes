@@ -11,7 +11,35 @@
             "tag": "div",
             "CSSClasses": [
 
-            ]
+            ],
+            "blocks": {
+                "Contact": {
+                    "type": "ContactForm",
+                    "title": "Contact",
+                    "titleLevel": 2,
+                    "id": "Contact",
+                    "tag": "div",
+                    "CSSClasses": [
+
+                    ],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 6,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "sendTo": {
+                            "Dric": "cedric@driczone.net",
+                            "Cedric": "cedric@driczone.net"
+                        },
+                        "copyTo": [
+
+                        ],
+                        "antiSpam": "on"
+                    }
+                }
+            }
         },
         "Pres": {
             "title": "Pres",
@@ -142,7 +170,7 @@
                         "lg": 0
                     },
                     "properties": {
-                        "content": null
+                        "content": "![enter image description here][1]\r\n\r\n\r\n  [1]: http:\/\/webserver\/Onawes\/content\/Files\/camera.jpg"
                     }
                 },
                 "Badminton": {
@@ -238,7 +266,7 @@
                         "lg": 0
                     },
                     "properties": {
-                        "content": null
+                        "content": "![Test](http:\/\/webserver\/Onawes\/content\/Files\/nouveau_bureau_citrix_01.png)"
                     }
                 },
                 "Adresse": {

@@ -278,4 +278,5 @@ class Block {
 	public function isUnsaved() {
 		return $this->isUnsaved;
 	}
+
 }

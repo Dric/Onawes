@@ -8,12 +8,15 @@ error_reporting(-1);
  * Time: 09:51
  */
 spl_autoload_register(function ($class) {
-	if (preg_match('/^Content\\\\Themes\\\\(\w*)/i', $class, $matches)){
+	if (preg_match('/^Content\\\\Themes\\\\(\w*)/i', $class, $matches)) {
 		@include_once 'classes/' . str_replace("\\", "/", $class) . '/' . $matches[1] . '.php';
+	}elseif($class == 'PHPMailer'){
+		@include_once 'classes'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'class.'.strtolower($class).'.php';
 	}else{
 		@include_once 'classes/' . str_replace("\\", "/", $class) . '.php';
 	}
 });
+
 // Définition de quelques variables
 $isHTTPS = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'];
 $absURL = rtrim((($isHTTPS) ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['SCRIPT_NAME']), '/');
@@ -79,11 +82,22 @@ $cssFiles = $Content->getCssFiles();
 $themes = $Content->getThemes();
 
 if (isset($_REQUEST['ajax'])){
+	header('Content-Type: application/json');
 	switch ($_REQUEST['ajax']){
 		case 'showMediaManager':
 			$Content->ajaxMediaManager();
-			exit();
+			break;
+		case 'reloadGallery':
+			$Content->ajaxShowGallery();
+			break;
+		case 'uploadFile':
+			$Content->ajaxUploadFile();
+			break;
+		case 'deleteFile':
+			$Content->ajaxDeleteFile();
+			break;
 	}
+	exit();
 }
 
 $themePHPClass = 'Content\\Themes\\'.$Content->getSiteSettings()['theme'];

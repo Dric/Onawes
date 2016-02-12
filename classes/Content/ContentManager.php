@@ -10,9 +10,11 @@ namespace Content;
 
 
 use Alerts\Alert;
-use Content\Blocks\HTMLBlock;
+use Content\Block;
+use Exception;
 use FileSystem\File;
 use FileSystem\Fs;
+use FileSystem\Upload;
 use Template;
 
 class ContentManager {
@@ -376,6 +378,8 @@ class ContentManager {
 				$refRow = \Sanitize::SanitizeForDb($_REQUEST['refRow'], false);
 			}
 		}
+		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
+		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
 		//$themeClass = '\\Themes\\'.$theme;
 		$this->currentTheme->toHTMLHeader();
 		//$page->toHTMLHeader();
@@ -440,7 +444,7 @@ class ContentManager {
 		}
 		?>
 		<!-- Modal -->
-		<div class="modal fade" id="mediaManagerModal" tabindex="-1" role="dialog" aria-labelledby="MediaManager" data-ajaxToLoad="<?php echo $settings->absoluteURL.'/?ajax=showMediaManager'; ?>">
+		<div class="modal fade" id="mediaManagerModal" tabindex="-1" role="dialog" aria-labelledby="MediaManager" data-ajaxToLoad="<?php echo $settings->absoluteURL.'/?ajax=showMediaManager'; ?>" data-ajaxLibrary="<?php echo $settings->absoluteURL.'/?ajax=reloadGallery'; ?>">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -457,8 +461,6 @@ class ContentManager {
 			</div>
 		</div>
 		<?php
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
@@ -668,6 +670,7 @@ class ContentManager {
 					<?php } ?>
 					<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
 					<input type="hidden" name="blockFullId" value="<?php echo $block->getFullId(); ?>">
+					<input type="hidden" name="blockType" value="<?php echo $block->getType(); ?>">
 					<input type="hidden" name="position" value="<?php echo $position; ?>">
 					<button type="submit" class="btn btn-primary" name="request" value="saveBlock">Enregistrer</button>
 					<?php if (!$block->isUnsaved()){ ?>
@@ -783,16 +786,30 @@ class ContentManager {
 					new Alert('error','Ajout de bloc : l\'ID du block n\'est pas renseignée.');
 					return false;
 				}
-				list($rowId, $blockId) = explode('-', \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false));
+				$blockFullId = \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false);
+				list($rowId, $blockId) = explode('-', $blockFullId);
 				if (empty($rowId) or empty($blockId)) {
 					new Alert('error','Ajout de bloc : l\'ID du block ou de la ligne n\'est pas renseignée correctement.');
 					return false;
 				}
-				$blockToSave = new HTMLBlock($blockId, $rowId);
-				if ($blockId == 'newBlock' and (!isset($_REQUEST['block_'.$blockToSave->getFullId().'_newId']) or $_REQUEST['block_'.$blockToSave->getFullId().'_newId'] == 'newBlock')){
+				if ($blockId == 'newBlock' and (!isset($_REQUEST['block_'.$blockFullId.'_newId']) or $_REQUEST['block_'.$blockFullId.'_newId'] == 'newBlock')){
 					new Alert('error', 'Erreur : Vous devez indiquer une ID différente de <code>newBlock</code>pour ce block');
 					return false;
 				}
+				if (isset($_REQUEST['block_'.$blockFullId.'_type']) or isset($_REQUEST['blockType'])){
+					$blockType = (isset($_REQUEST['block_'.$blockFullId.'_type'])) ? $_REQUEST['block_'.$blockFullId.'_type'] : $_REQUEST['blockType'];
+					if (!in_array($blockType, $this->blockTypes)){
+						new Alert('error', 'Erreur : Le type de bloc ne fait partie des blocs autorisés !');
+						return false;
+					}
+					$blockPHPClass = $this->getBlockPHPCLass($blockType);
+					/** @var Block $blockToSave */
+					$blockToSave = new $blockPHPClass($blockId, $rowId);
+				}else{
+					new Alert('error', 'Erreur : Aucun type de bloc renvoyé !');
+					return false;
+				}
+
 				if (isset($_REQUEST['block_'.$blockToSave->getFullId().'_titleLevel'])){
 					if (isset($_REQUEST['block_'.$blockToSave->getFullId().'_title'])){
 						$blockToSave->setTitle((int)$_REQUEST['block_'.$blockToSave->getFullId().'_titleLevel'], \Sanitize::SanitizeForDb($_REQUEST['block_'.$blockToSave->getFullId().'_title'], false));
@@ -808,8 +825,10 @@ class ContentManager {
 						$blockToSave->setWidth($width, (int)$_REQUEST['block_'.$blockToSave->getFullId().'_width_'.$width]);
 					}
 				}
-				if (isset($_REQUEST['block_'.$blockToSave->getFullId().'_content'])){
-					$blockToSave->setContent(\Sanitize::SanitizeForDb($_REQUEST['block_'.$blockToSave->getFullId().'_content'], false));
+				foreach ($blockToSave->getRequestFieldsToSave() as $field){
+					if (isset($_REQUEST['block_'.$blockToSave->getFullId().'_'.$field])){
+						$blockToSave->{'set'.ucfirst($field)}(\Sanitize::SanitizeForDb($_REQUEST['block_'.$blockToSave->getFullId().'_'.$field], false));
+					}
 				}
 				if (isset($_REQUEST['block_'.$blockToSave->getFullId().'_newId'])){
 					$blockId = str_replace(' ', '_', \Sanitize::SanitizeForDb($_REQUEST['block_'.$blockToSave->getFullId().'_newId'], false));
@@ -818,24 +837,24 @@ class ContentManager {
 				break;
 			case 'delBlock':
 				if (!isset($_REQUEST['blockFullId'])){
-					new Alert('error','Suppression de bloc : l\'ID du block n\'est pas renseigné.');
+					new Alert('error','Suppression de bloc : l\'ID du bloc n\'est pas renseigné.');
 					return false;
 				}
 				list($rowId, $blockId) = explode('-', \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false));
 				if (empty($rowId) or empty($blockId)) {
-					new Alert('error','Suppression de bloc : l\'ID du block ou de la ligne n\'est pas renseignée correctement.');
+					new Alert('error','Suppression de bloc : l\'ID du bloc ou de la ligne n\'est pas renseignée correctement.');
 					return false;
 				}
 				$page->getRows()[$rowId]->removeBlock($blockId);
 				break;
 			case 'moveBlock':
 				if (!isset($_REQUEST['refBlock'])){
-					new Alert('error','Déplacement de bloc : l\'ID du block n\'est pas renseigné.');
+					new Alert('error','Déplacement de bloc : l\'ID du bloc n\'est pas renseigné.');
 					return false;
 				}
 				list($rowId, $blockId) = explode('-', \Sanitize::SanitizeForDb($_REQUEST['refBlock'], false));
 				if (empty($rowId) or empty($blockId)) {
-					new Alert('error','Déplacement de bloc : l\'ID du block ou de la ligne n\'est pas renseignée correctement.');
+					new Alert('error','Déplacement de bloc : l\'ID du bloc ou de la ligne n\'est pas renseignée correctement.');
 					return false;
 				}
 				$blockMove = 'before';
@@ -918,10 +937,6 @@ class ContentManager {
 
 	public function ajaxMediaManager($mediaDir = null, $allowedExt = array()){
 		global $settings;
-		$mediaDir = (!empty($mediaDir)) ? $mediaDir : $this->contentDir.DIRECTORY_SEPARATOR.'Files';
-		$mediaURL = str_replace($this->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $mediaDir);
-		$fs = new Fs($mediaDir);
-		$files = $fs->getFilesInDir(null, null, array('extension'), true);
 		?>
 		<!-- nav tabs -->
 		<ul class="nav nav-tabs" id="myTabs">
@@ -932,46 +947,80 @@ class ContentManager {
 		<!-- tab panes -->
 		<div class="tab-content">
 			<div class="tab-pane active fade in" id="upload">
-				<p>upload area is here...... will be here.....</p>
+				<div class="form-group">
+					<label class="control-label" for="upload-media">Fichier à charger</label>
+					<div class="">
+						<input type="file" class="form-control" id="upload-media" name="upload-media" data-language="fr" data-upload-url="<?php echo $settings->absoluteURL.'/?ajax=uploadFile'; ?>">
+					</div>
+				</div>
 				<button class="btn btn-info">Add Files</button>
 			</div>
-
 			<!-- library tab -->
 			<div class="tab-pane fade" id="library">
-				<table class="table table-striped">
-					<thead>
-						<tr>
-							<td>Image</td>
-							<td>Nom</td>
-							<td>Actions</td>
-						</tr>
-					</thead>
-					<tbody>
-					<?php
-					/** @var File $file */
-					foreach ($files as $file){
-						if ((!empty($allowedExt) and in_array($file->extension, $allowedExt)) or empty($allowedExt)){
-							?>
-							<tr>
-								<td><img class="mediaThumb img-rounded" src="<?php echo $mediaURL.'/'.$file->baseName; ?>" alt="<?php echo $file->name; ?>"></td>
-								<td><?php echo $file->name; ?></td>
-								<td>
-									<button class="mediaInsert btn btn-default" data-image-id="<?php echo $mediaURL.'/'.$file->baseName; ?>">Insérer</button>
-								</td>
-							</tr>
-							<?php
-						}
-					}
-					?>
-					</tbody>
-				</table>
-				<div class="clearfix"></div>
-				<!-- insert button -->
-				<button type="button" class="btn btn-sm btn-info insert">Insérer</button>
+			<?php $this->ajaxShowGallery($mediaDir, $allowedExt); ?>
 			</div><!-- end .library -->
 		</div><!-- end tab-content -->
 		<?php
 	}
 
+	public function ajaxShowGallery($mediaDir = null, $allowedExt = array()){
+		global $settings;
+		$mediaDir = (!empty($mediaDir)) ? $mediaDir : $this->contentDir.DIRECTORY_SEPARATOR.'Files';
+		$mediaURL = str_replace($this->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $mediaDir);
+		$fs = new Fs($mediaDir);
+		$files = $fs->getFilesInDir(null, null, array('extension'), true);
+		?>
+			<table class="table table-striped">
+				<thead>
+				<tr>
+					<td>Image</td>
+					<td>Nom</td>
+					<td>Actions</td>
+				</tr>
+				</thead>
+				<tbody>
+				<?php
+				/** @var File $file */
+				foreach ($files as $file){
+					if ((!empty($allowedExt) and in_array($file->extension, $allowedExt)) or empty($allowedExt)){
+						?>
+						<tr id="tr_<?php echo $file->name; ?>">
+							<td><img class="mediaThumb img-rounded" src="<?php echo $mediaURL.'/'.$file->baseName; ?>" alt="<?php echo $file->name; ?>"></td>
+							<td><?php echo $file->name; ?></td>
+							<td>
+								<button class="mediaInsert btn btn-default" data-file-id="<?php echo $mediaURL.'/'.$file->baseName; ?>">Insérer</button>
+								<button class="mediaDelete btn btn-danger" data-file-id="<?php echo $mediaDir.DIRECTORY_SEPARATOR.$file->baseName; ?>" data-delete-url="<?php echo $settings->absoluteURL.'/?ajax=deleteFile'; ?>" data-tr-name="tr_<?php echo $file->name; ?>">Supprimer</button>
+							</td>
+						</tr>
+						<?php
+					}
+				}
+				?>
+				</tbody>
+			</table>
+			<div class="clearfix"></div>
+			<!-- insert button -->
+			<!--<button type="button" class="btn btn-sm btn-info insert">Insérer</button>-->
+		<?php
+	}
+
+	public function ajaxUploadFile(){
+		global $settings;
+		$mediaDir = (!empty($mediaDir)) ? $mediaDir : $this->contentDir.DIRECTORY_SEPARATOR.'Files';
+		$mediaURL = str_replace($this->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $mediaDir);
+		Upload::file($_FILES['upload-media'], $mediaDir, 800, array(), array(), true);
+	}
+
+	public function ajaxDeleteFile(){
+		$jsonArray = array();
+		try {
+			unlink($_REQUEST['fileId']);
+			$jsonArray['ok'] = true;
+		}catch(Exception $e){
+			$jsonArray['message'] = 'Erreur de suppression : ' . $e->getMessage();
+			$jsonArray['ok'] = false;
+		}
+		exit(json_encode($jsonArray));
+	}
 
 }

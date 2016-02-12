@@ -8,7 +8,7 @@
 #
 # Original Markdown  
 # Copyright (c) 2004-2006 John Gruber  
-# <http://daringfireball.net/projects/markdown/>
+# <https://daringfireball.net/projects/markdown/>
 #
 namespace Michelf;
 
@@ -21,7 +21,7 @@ class Markdown implements MarkdownInterface {
 
 	### Version ###
 
-	const  MARKDOWNLIB_VERSION  =  "1.5.0";
+	const  MARKDOWNLIB_VERSION  =  "1.6.0";
 
 	### Simple Function Interface ###
 
@@ -64,8 +64,9 @@ class Markdown implements MarkdownInterface {
 
 	# Optional header id="" generation callback function.
 	public $header_id_func = null;
-
-	public $headerClass = null;
+	
+	# Optional function for converting code block content to HTML
+	public $code_block_content_func = null;
 
 	# Class attribute to toggle "enhanced ordered list" behaviour
 	# setting this to true will allow ordered lists to start from the index
@@ -495,7 +496,7 @@ class Markdown implements MarkdownInterface {
 		"doImages"            =>  10,
 		"doAnchors"           =>  20,
 		
-		# Make links out of things like `<http://example.com/>`
+		# Make links out of things like `<https://example.com/>`
 		# Must come after doAnchors, because you can use < and >
 		# delimiters in inline links like [this](<url>).
 		"doAutoLinks"         =>  30,
@@ -800,27 +801,18 @@ class Markdown implements MarkdownInterface {
 
 		# id attribute generation
 		$idAtt = $this->_generateIdFromHeaderValue($matches[1]);
-		$classAtt = $this->_addClassToHeader();
-		$block = "<h$level$idAtt$classAtt>".$this->runSpanGamut($matches[1])."</h$level>";
+
+		$block = "<h$level$idAtt>".$this->runSpanGamut($matches[1])."</h$level>";
 		return "\n" . $this->hashBlock($block) . "\n\n";
 	}
 	protected function _doHeaders_callback_atx($matches) {
 
 		# id attribute generation
 		$idAtt = $this->_generateIdFromHeaderValue($matches[2]);
-		$classAtt = $this->_addClassToHeader();
-		$level = strlen($matches[1]);
-		$block = "<h$level$idAtt$classAtt>".$this->runSpanGamut($matches[2])."</h$level>";
-		return "\n" . $this->hashBlock($block) . "\n\n";
-	}
 
-	/**
-	 * Ajouté par Dric pour définir une classe pour les entêtes
-	 * @return string
-	 */
-	protected function _addClassToHeader(){
-		if (empty($this->headerClass)) return '';
-		return ' class="'.$this->headerClass.'"';
+		$level = strlen($matches[1]);
+		$block = "<h$level$idAtt>".$this->runSpanGamut($matches[2])."</h$level>";
+		return "\n" . $this->hashBlock($block) . "\n\n";
 	}
 
 	protected function _generateIdFromHeaderValue($headerValue) {
@@ -1035,7 +1027,11 @@ class Markdown implements MarkdownInterface {
 		$codeblock = $matches[1];
 
 		$codeblock = $this->outdent($codeblock);
-		$codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
+		if ($this->code_block_content_func) {
+			$codeblock = call_user_func($this->code_block_content_func, $codeblock, "");
+		} else {
+			$codeblock = htmlspecialchars($codeblock, ENT_NOQUOTES);
+		}
 
 		# trim leading newlines and trailing newlines
 		$codeblock = preg_replace('/\A\n+|\n+\z/', '', $codeblock);

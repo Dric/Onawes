@@ -19,4 +19,6 @@ If Onawes is installed on root directory or in subdirectory not named 'onawes', 
 
 ## Components used
 
-Pagedown-bootstrap : https://github.com/izambasiron/pagedown-bootstrap
+* Pagedown-bootstrap : https://github.com/izambasiron/pagedown-bootstrap
+
+En cas de mise à jour, penser à remettre la classe CSS "img-responsive" sur les images (faire une recherche sur `<img` et rajouter la classe partout)
