@@ -7,6 +7,7 @@
  * Time: 16:16
  *
  */
+use Michelf\MarkdownExtra;
 
 /**
  * Classe de fonctions de transformation de données
@@ -331,6 +332,41 @@ class Sanitize {
 			}
 		}
 		return $string;
+	}
+
+	/**
+	 * Function to turn URLs into links
+	 *
+	 * @from http://www.phpro.org/examples/URL-to-Link.html
+	 * @param string $string The url string
+	 * @return string
+	 *
+	 **/
+	public static function makeLinks($string){
+
+		/*** make sure there is an http:// on all URLs ***/
+		$string = preg_replace("/([^\w\/])(www\.[a-z0-9\-]+\.[a-z0-9\-]+)/i", "$1http://$2",$string);
+		/*** make all URLs links ***/
+		$string = preg_replace("/([\w]+:\/\/[\w-?&;#~=\.\/\@]+[\w\/])/i","<a target=\"_blank\" href=\"$1\">$1</a>",$string);
+		/*** make all emails hot links ***/
+		$string = preg_replace("/([\w-?&;#~=\.\/]+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?))/i","<a href==\"mailto:$1\">$1</a>",$string);
+
+		return $string;
+	}
+
+	/**
+	 * Returns a Markdown-written content in HTML
+	 *
+	 * @param string $content Markdown Content
+	 * @return string
+	 */
+	public static function MarkdownToHTML($content){
+		$content = MarkdownExtra::defaultTransform($content);
+		// Gestion des antislashes dans les balises code (les antislashes sont doublés dans ces cas-là par le système)
+		$content = str_replace('\\\\', '\\', $content);
+		// Passer les images en responsive
+		$content =  str_replace('<img ', '<img class="img-responsive img-rounded" ', $content);
+		return $content;
 	}
 
 }

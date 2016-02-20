@@ -60,6 +60,43 @@
             </LessProfile>
           </value>
         </entry>
+        <entry key="3">
+          <value>
+            <LessProfile>
+              <option name="compileAutomatically" value="false" />
+              <option name="compressOutput" value="true" />
+              <option name="cssDirectories">
+                <list>
+                  <CssDirectory>
+                    <option name="path" value="C:\GitHub\Onawes\classes\Content\Themes\Assostdoul" />
+                  </CssDirectory>
+                </list>
+              </option>
+              <option name="id" value="3" />
+              <option name="includePattern" value="assostdoul.less" />
+              <option name="lessDirPath" value="C:\Github\Onawes\classes\Content\Themes\Assostdoul\less" />
+              <option name="name" value="assostdoul-home" />
+            </LessProfile>
+          </value>
+        </entry>
+        <entry key="4">
+          <value>
+            <LessProfile>
+              <option name="compressOutput" value="true" />
+              <option name="cssDirectories">
+                <list>
+                  <CssDirectory>
+                    <option name="path" value="C:\GitHub\Onawes\classes\Content\Themes\Edit" />
+                  </CssDirectory>
+                </list>
+              </option>
+              <option name="id" value="4" />
+              <option name="includePattern" value="edit.less" />
+              <option name="lessDirPath" value="C:\GitHub\Onawes\classes\Content\Themes\Edit\less" />
+              <option name="name" value="edit-home" />
+            </LessProfile>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

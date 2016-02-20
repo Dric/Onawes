@@ -41,7 +41,7 @@ class Upload {
 	 * @return bool|string false si erreur, nom du fichier chargé si OK
 	 */
 	public static function file($file, $moveTo, $maxSize, $allowedExtensions = array(), $args = array(), $jsonReturn = false) {
-		global $settings;
+		global $settings, $Content;
 		$jsonArray = array();
 		// Commençons par voir si php a remonté une erreur
 		if ($file['error'] > 0) {
@@ -205,7 +205,7 @@ class Upload {
 			}
 		}
 		if($jsonReturn){
-			$jsonArray['initialPreview'] = '<img class="file-preview-image" src="'.str_replace($settings->absolutePath.DIRECTORY_SEPARATOR.$settings->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $moveTo).'/'.$name.'">';
+			$jsonArray['initialPreview'] = '<img class="file-preview-image" src="'.str_replace($Content->getContentDir().DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $moveTo).'/'.$name.'">';
 			exit(json_encode($jsonArray));
 		}else{
 			return $name;

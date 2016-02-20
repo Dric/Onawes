@@ -10,10 +10,6 @@ namespace Content;
 
 
 use Alerts\Alert;
-use DOMDocument;
-use FileSystem\Fs;
-use simple_html_dom_node;
-use Template;
 
 class Page {
 
@@ -40,9 +36,13 @@ class Page {
 
 	protected $CSSClasses = array();
 
+	/** @var Menu */
+	protected $menu = null;
+
 	public function __construct($fileName, $title = null){
 		$this->fileName = $fileName;
 		if (empty($title)) $this->title = $this->fileName;
+		$this->menu = new Menu();
 	}
 	/**
 	 * @return string
@@ -58,13 +58,18 @@ class Page {
 		$this->fileName = $fileName;
 	}
 
+
+	public function addMenuItem(MenuItem $item){
+		$this->menu->addItem($item);
+	}
+
 	/**
 	 * Display HTML content of page
 	 *
 	 * @param Theme $theme
 	 */
 	public function toHTML($theme){
-		$theme->toHTMLHeader();
+		$theme->toHTMLHeader($this->menu, $this->title);
 		/** @var Row $row */
 		foreach ($this->rows as $row){
 			$row->toHTML();

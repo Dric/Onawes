@@ -1,12 +1,6 @@
 <?php
-ini_set("display_errors", 1);
-error_reporting(-1);
-/**
- * Created by PhpStorm.
- * User: Dric
- * Date: 17/01/2016
- * Time: 09:51
- */
+
+// PHP Classes auto-loading...
 spl_autoload_register(function ($class) {
 	if (preg_match('/^Content\\\\Themes\\\\(\w*)/i', $class, $matches)) {
 		@include_once 'classes/' . str_replace("\\", "/", $class) . '/' . $matches[1] . '.php';
@@ -17,28 +11,26 @@ spl_autoload_register(function ($class) {
 	}
 });
 
-// Définition de quelques variables
+// Determining dynamic settings...
 $isHTTPS = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'];
 $absURL = rtrim((($isHTTPS) ? 'https':'http').'://'.$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['SCRIPT_NAME']), '/');
 $args = array(
 	'absolutePath'  => realpath(dirname(__FILE__)),
-	'absoluteURL'   => $absURL,
-  'editURL'       => $absURL.'/edit'
+	'absoluteURL'   => $absURL
 );
 
-/**
- * Chargement des paramètres
- * @var Settings $settings
- */
+// Loading settings...
 if ('classes/LocalSettings.php'){
 	$settings = new LocalSettings($args);
 }else{
 	$settings = new Settings($args);
 }
 
+// Defaulting vars...
 $adminMode = false;
 $requestedPage = null;
 
+// Processing pretty URL if activated...
 if ($settings->prettyURL) {
 	/*
 	 * Test it on regex101.com
@@ -67,6 +59,7 @@ if ($settings->prettyURL) {
 		// $match[3] is the same as $_REQUEST
 	}
 }else{
+	// No pretty url, but we must return the requested page...
 	if (isset($_REQUEST['page'])){
 		$requestedPage = $_REQUEST['page'];
 	}
@@ -75,13 +68,32 @@ if ($settings->prettyURL) {
 	}
 }
 
-//session_start();
-$Content = new \Content\ContentManager();
-$blockTypes = $Content->getBlockTypes();
-$cssFiles = $Content->getCssFiles();
-$themes = $Content->getThemes();
 
-if (isset($_REQUEST['ajax'])){
+session_start();
+
+// Populating stuff...
+$Content = new \Content\ContentManager();
+
+// Loading Theme...
+$themePHPClass = 'Content\\Themes\\'.$Content->getSiteSettings()['theme'];
+$theme = new $themePHPClass();
+
+// Let's process Login/logoff...
+if (isset($_REQUEST['tryLogin'])){
+	Security::tryLogin();
+}elseif(isset($_REQUEST['logoff'])){
+	Security::deleteCookie();
+	header('location: '.$settings->absoluteURL);
+}
+
+// Checking if authenticated...
+if ($adminMode and !Security::isLoggedIn()){
+	Security::loginForm();
+}
+
+// We've got an asynchronous admin request here !
+if (isset($_REQUEST['ajax']) and Security::isLoggedIn()){
+	// Let's be sure web browser understand the response is a json array...
 	header('Content-Type: application/json');
 	switch ($_REQUEST['ajax']){
 		case 'showMediaManager':
@@ -100,19 +112,23 @@ if (isset($_REQUEST['ajax'])){
 	exit();
 }
 
-$themePHPClass = 'Content\\Themes\\'.$Content->getSiteSettings()['theme'];
-$theme = new $themePHPClass();
-if (empty($requestedPage)){
+
+// Loading default page if none requested...
+if (empty($requestedPage) and !$adminMode){
 	$requestedPage = $Content->getSiteSettings()['mainPage'];
 }
 
+// We've got a request here !
 if (isset($_REQUEST['request'])){
 	$Content->processRequest();
 }
-//$isLoggedIn = \Auth\Login::checkAuth();
+
+// Displaying content...
 if ($adminMode){
+	// Displaying admin pages...
 	switch ($requestedPage){
 		case 'homePage':
+		case null:
 			$Content->editHome();
 			break;
 		case 'pages':
@@ -120,6 +136,9 @@ if ($adminMode){
 			break;
 		case 'site':
 			$Content->editSite();
+			break;
+		case 'news':
+			$Content->editNews();
 			break;
 		default:
 			$page = $Content->addPageFromJSON($requestedPage);
@@ -130,10 +149,12 @@ if ($adminMode){
 			}
 	}
 }else{
+	// Displaying front pages...
 	$page = $Content->addPageFromJSON($requestedPage);
 	if ($page !== false)	{
 		$page->toHTML($theme);
 	}else{
+		// No page found !
 		?><h1>Erreur : Impossible de charger la page <code><?php echo $requestedPage; ?></code> !</h1><?php
 	}
 }

@@ -142,9 +142,10 @@ class MenuItem {
 	}
 
 	public function toHTML(){
+		$CSSClasses = $this->getCSSClasses(true);
 		?>
-		<li id="<?php echo $this->id; ?>" class="<?php echo $this->getCSSClasses(true); ?>">
-			<a href="<?php echo $this->link; ?>"><?php if (!empty($this->icon)) echo $this->getHTMLIcon(); ?> <?php echo $this->title; ?></a>
+		<li <?php if (!empty($this->id)) echo 'id="menuItem_'.$this->id.'"'; ?> <?php if (!empty($CSSClasses)) echo 'class="'.$CSSClasses.'"'; ?>>
+			<a href="<?php echo $this->link; ?>"><?php if (!empty($this->icon)) echo $this->getHTMLIcon(); ?> <?php if (!empty($this->title)) echo $this->title; ?></a>
 		</li>
 		<?php
 	}

@@ -14,18 +14,20 @@ use Template;
 use Content\Theme;
 
 class Edit extends Theme{
-	protected $title = 'Administration';
-	protected $cssFiles = array('css/onawes.css');
+	protected $title = 'Onawes - Administration';
 	/**
 	 * @var Menu
 	 */
 	protected $menu = null;
 
-	public function toHTMLHeader($cssFiles = null){
+	public function toHTMLHeader(Menu $menu = null, $title = '', $cssFiles = null){
 		global $settings;
+		Template::addJsToFooter('<script src="'.$settings->absoluteURL.'/js/jquery.eqheight.js"></script>');
+		Template::addJsToFooter('<script src="'.$this->getUrlThemeBase().'/js/edit.js"></script>', 1000);
 		$this->setSidebarMenu();
+		if (empty($title)) $title = $this->title;
 		if (empty($cssFiles)) $cssFiles = $this->cssFiles;
-		Template::header($cssFiles, $this->title);
+		Template::header($cssFiles, $title);
 		?>
 		<body>
 			<div id="wrapper">
@@ -86,6 +88,8 @@ class Edit extends Theme{
 		$menu->addItem($titleItem);
 		$menu->addItem(new MenuItem('pages', 'Pages', Template::createURL(array('edit'=>true, 'page'=>'pages')), 'sidebar-nav'));
 		$menu->addItem(new MenuItem('siteSettings', 'Paramètres du site', Template::createURL(array('edit'=>true, 'page'=>'site')), 'sidebar-nav'));
+		$menu->addItem(new MenuItem('news', 'Gestion des articles', Template::createURL(array('edit'=>true, 'page'=>'news')), 'sidebar-nav'));
+		$menu->addItem(new MenuItem('logoff', 'Déconnexion', Template::createURL(array('logoff'=>'true')), 'sidebar-nav'));
 		$this->menu = $menu;
 	}
 
@@ -115,10 +119,4 @@ class Edit extends Theme{
 		<?php
 		$this->toHTMLFooter();
 	}
-
-	public function populateCssFiles(){
-		global $settings;
-		$this->cssFiles = array($settings->absoluteURL.'/css/onawes.css');
-	}
-
 }

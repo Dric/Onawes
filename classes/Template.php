@@ -40,10 +40,12 @@ class Template {
 	 */
 	protected static $jsFooter = array();
 
-	public static function header($cssFiles = null, $subTitle = ''){
+	public static function header($cssFiles = null, $title = ''){
 		global $settings;
 		if (empty($cssFiles)) $cssFiles = array('onawes.css');
 		?>
+		<!DOCTYPE html>
+		<html lang="fr">
 		<head>
 			<meta charset="utf-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,13 +57,14 @@ class Template {
 			<script src="<?php echo $settings->absoluteURL; ?>/js/html5shiv.js"></script>
 			<script src="<?php echo $settings->absoluteURL; ?>/js/respond.min.js"></script>
 			<![endif]-->
-			<title><?php echo $settings->scriptTitle; if (!empty($subTitle)) echo ' - '.$subTitle; ?></title>
+			<title><?php echo $title; ?></title>
 
 			<!-- The CSS -->
 			<?php foreach ($cssFiles as $cssFile){ ?>
 				<link href="<?php echo $cssFile; ?>" rel="stylesheet">
 			<?php } ?>
 			<?php self::cssHeader(); ?>
+			<link href="<?php echo $settings->absoluteURL; ?>/css/animate.css" rel="stylesheet">
 			<?php
 			// On ajoute le contenu de $header
 			foreach (self::$header as $headerLine){
@@ -132,7 +135,10 @@ class Template {
 		<script src="<?php echo $settings->absoluteURL; ?>/js/onawes.js"></script>
 
 		<?php
-		foreach (self::$jsFooter as $footerLine){
+		$jsFooter = self::$jsFooter;
+		// On retrie le tableau par clé
+		ksort($jsFooter);
+		foreach ($jsFooter as $footerLine){
 			echo $footerLine.PHP_EOL;
 		}
 		?>
@@ -176,10 +182,17 @@ class Template {
 
 	/**
 	 * Ajoute une ligne dans le tableau des chargements de scripts javascript dans la partie `<footer>` de la page
+	 *
 	 * @param string $js
+	 * @param int   $priority
 	 */
-	public static function addJsToFooter($js) {
-		self::$jsFooter[] = $js;
+	public static function addJsToFooter($js, $priority = 0) {
+		if (isset(self::$jsFooter[$priority])){
+			while(isset(self::$jsFooter[$priority])){
+				$priority++;
+			}
+		}
+		self::$jsFooter[$priority] = $js;
 	}
 
 	/**

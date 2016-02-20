@@ -1,17 +1,193 @@
 {
-    "title": "Index",
-    "CSSClasses": [
-
-    ],
+    "title": "Association St Doul",
+    "CSSClasses": [],
     "theme": null,
     "rows": {
-        "Test_it_raw_dude": {
-            "title": "Test_it_raw_dude",
-            "id": "Test_it_raw_dude",
+        "Actus": {
+            "title": "Actualités",
+            "id": "Actus",
             "tag": "div",
-            "CSSClasses": [
-
-            ],
+            "CSSClasses": [],
+            "isMenuItem": true,
+            "blocks": {
+                "Articles": {
+                    "type": "News",
+                    "title": "Actualités",
+                    "titleLevel": 2,
+                    "id": "Articles",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 7,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "itemsToDisplay": "10",
+                        "allowedCats": []
+                    }
+                },
+                "Présentation": {
+                    "type": "Text",
+                    "title": "Présentation du club",
+                    "titleLevel": 2,
+                    "id": "Présentation",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 5,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "Fondé en 1983, ce club de volley ball propose maintenant également du badminton et du futsal à tous les sportifs sur Bourges et aux alentours. \r\n\r\nVous pourrez pratiquer du sport en loisir ainsi que de la compétition départementale.\r\n\r\nPour plus d'information sur chaque sport proposé, vous pouvez vous rendre dans les sections sportives."
+                    }
+                }
+            }
+        },
+        "Sections": {
+            "title": "Sections",
+            "id": "Sections",
+            "tag": "div",
+            "CSSClasses": [],
+            "isMenuItem": true,
+            "blocks": {
+                "Explain": {
+                    "type": "Text",
+                    "title": "Les sections",
+                    "titleLevel": 1,
+                    "id": "Explain",
+                    "tag": "div",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 12,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "L'association propose trois activités sportives, le volley-ball, le futsal et le badminton.\r\n\r\nPour connaître les modalités d'inscription et les activités proposées au sein de chaque section, veuillez cliquer sur les images ci-dessous pour vous rendre dans les différentes sections."
+                    }
+                }
+            }
+        },
+        "Sections-logos": {
+            "title": "Sections-logos",
+            "id": "Sections-logos",
+            "tag": "div",
+            "CSSClasses": [],
+            "isMenuItem": null,
+            "blocks": {
+                "Volley": {
+                    "type": "Text",
+                    "title": "VolleyBall",
+                    "titleLevel": 2,
+                    "id": "Volley",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 4,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "![Volley-Ball][1]\r\n\r\n\r\n  [1]: http:\/\/driczone.dev\/onawes\/content\/Files\/volleyball.jpg"
+                    }
+                },
+                "FutSal": {
+                    "type": "Text",
+                    "title": "Futsal",
+                    "titleLevel": 2,
+                    "id": "FutSal",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 4,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "![Futsal][1]\r\n\r\n\r\n  [1]: http:\/\/driczone.dev\/onawes\/content\/Files\/futsal.jpg"
+                    }
+                },
+                "Badminton": {
+                    "type": "Text",
+                    "title": "Badminton",
+                    "titleLevel": 2,
+                    "id": "Badminton",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 4,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "![Badminton][1]\r\n\r\n\r\n  [1]: http:\/\/driczone.dev\/onawes\/content\/Files\/badminton.jpg"
+                    }
+                }
+            }
+        },
+        "Gymnase": {
+            "title": "Gymnase",
+            "id": "Gymnase",
+            "tag": "div",
+            "CSSClasses": [],
+            "isMenuItem": true,
+            "blocks": {
+                "Adresse": {
+                    "type": "Address",
+                    "title": "Gymnase",
+                    "titleLevel": 2,
+                    "id": "Adresse",
+                    "tag": "div",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 6,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "givenName": "Gymnase des Verdins",
+                        "streetAddress": "Avenue du 11 novembre",
+                        "postalCode": "18230",
+                        "locality": "St Doulchard",
+                        "latitude": "47.104397",
+                        "longitude": "2.370697",
+                        "description": "Le gymnase est situé au fond du parking à côté de la piscine."
+                    }
+                },
+                "Plan": {
+                    "type": "Text",
+                    "title": "Plan",
+                    "titleLevel": 2,
+                    "id": "Plan",
+                    "tag": "section",
+                    "CSSClasses": [],
+                    "widths": {
+                        "xs": 0,
+                        "sm": 0,
+                        "md": 6,
+                        "lg": 0
+                    },
+                    "properties": {
+                        "content": "[![Plan][2]][1]\r\n\r\nCliquez sur la carte pour accéder au plan sur Google Map.\r\n\r\n\r\n  [1]: https:\/\/maps.google.com\/maps?daddr=Cosec%20St%20Doulchard@47.10439730463557,2.370697259902954&amp;ie=UTF8&amp;t=m&amp;ll=47.104397,2.370697&amp;spn=0.006295,0.009249\r\n  [2]: http:\/\/driczone.dev\/onawes\/content\/Files\/map.jpg"
+                    }
+                }
+            }
+        },
+        "Contact": {
+            "title": "Contact",
+            "id": "Contact",
+            "tag": "div",
+            "CSSClasses": [],
+            "isMenuItem": true,
             "blocks": {
                 "Contact": {
                     "type": "ContactForm",
@@ -19,9 +195,7 @@
                     "titleLevel": 2,
                     "id": "Contact",
                     "tag": "div",
-                    "CSSClasses": [
-
-                    ],
+                    "CSSClasses": [],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -30,310 +204,53 @@
                     },
                     "properties": {
                         "sendTo": {
-                            "Dric": "cedric@driczone.net",
-                            "Cedric": "cedric@driczone.net"
+                            "Le président": "association.sportive.st.doul@hotmail.fr",
+                            "Le responsable du site web": "cedric@driczone.net"
                         },
-                        "copyTo": [
-
-                        ],
+                        "copyTo": {
+                            "association.sportive.st.doul@hotmail.fr": null
+                        },
                         "antiSpam": "on"
                     }
-                }
-            }
-        },
-        "Pres": {
-            "title": "Pres",
-            "id": "Pres",
-            "tag": "div",
-            "CSSClasses": [
-
-            ],
-            "blocks": {
-                "Pouet": {
-                    "type": "HTML",
-                    "title": "test",
+                },
+                "Adresse_Club": {
+                    "type": "Address",
+                    "title": "Adresse du club",
                     "titleLevel": 2,
-                    "id": "Pouet",
+                    "id": "Adresse_Club",
                     "tag": "div",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 3,
-                        "md": 0,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": "Test tes testsetsetse"
-                    }
-                },
-                "PresBlock": {
-                    "type": "HTML",
-                    "title": "PresBlock",
-                    "titleLevel": 0,
-                    "id": "PresBlock",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
+                    "CSSClasses": [],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
-                        "md": 6,
+                        "md": 3,
                         "lg": 0
                     },
                     "properties": {
-                        "content": null
-                    }
-                },
-                "test": {
-                    "type": "HTML",
-                    "title": "fg",
-                    "titleLevel": 2,
-                    "id": "test",
-                    "tag": "div",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 4,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                }
-            }
-        },
-        "sections": {
-            "title": "sections",
-            "id": "sections",
-            "tag": "div",
-            "CSSClasses": [
-
-            ],
-            "blocks": {
-                "sections": {
-                    "type": "HTML",
-                    "title": "Les sections",
-                    "titleLevel": 1,
-                    "id": "sections",
-                    "tag": "div",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 12,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                },
-                "VolleyBall": {
-                    "type": "HTML",
-                    "title": "VolleyBall",
-                    "titleLevel": 2,
-                    "id": "VolleyBall",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 4,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                },
-                "Futsal": {
-                    "type": "HTML",
-                    "title": "Futsal",
-                    "titleLevel": 2,
-                    "id": "Futsal",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 4,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": "![enter image description here][1]\r\n\r\n\r\n  [1]: http:\/\/webserver\/Onawes\/content\/Files\/camera.jpg"
-                    }
-                },
-                "Badminton": {
-                    "type": "HTML",
-                    "title": "Badminton",
-                    "titleLevel": 2,
-                    "id": "Badminton",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 4,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                }
-            }
-        },
-        "gymnase": {
-            "title": "gymnase",
-            "id": "gymnase",
-            "tag": "div",
-            "CSSClasses": [
-
-            ],
-            "blocks": {
-                "Gymnase": {
-                    "type": "HTML",
-                    "title": "Gymnase",
-                    "titleLevel": 2,
-                    "id": "Gymnase",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 6,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                },
-                "Plan": {
-                    "type": "HTML",
-                    "title": "Plan",
-                    "titleLevel": 2,
-                    "id": "Plan",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 5,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                }
-            }
-        },
-        "contact": {
-            "title": "contact",
-            "id": "contact",
-            "tag": "div",
-            "CSSClasses": [
-
-            ],
-            "blocks": {
-                "Contact": {
-                    "type": "HTML",
-                    "title": "Contact",
-                    "titleLevel": 2,
-                    "id": "Contact",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 6,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": "![Test](http:\/\/webserver\/Onawes\/content\/Files\/nouveau_bureau_citrix_01.png)"
-                    }
-                },
-                "Adresse": {
-                    "type": "HTML",
-                    "title": "Adresse",
-                    "titleLevel": 0,
-                    "id": "Adresse",
-                    "tag": "section",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 6,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
-                    }
-                }
-            }
-        },
-        "bottom": {
-            "title": "bottom",
-            "id": "bottom",
-            "tag": "div",
-            "CSSClasses": [
-
-            ],
-            "blocks": {
-                "Adresse": {
-                    "type": "HTML",
-                    "title": "Adresse",
-                    "titleLevel": 3,
-                    "id": "Adresse",
-                    "tag": "div",
-                    "CSSClasses": [
-
-                    ],
-                    "widths": {
-                        "xs": 0,
-                        "sm": 0,
-                        "md": 2,
-                        "lg": 0
-                    },
-                    "properties": {
-                        "content": null
+                        "givenName": "Association St Doul'",
+                        "streetAddress": "14 rue des Cèdres",
+                        "postalCode": "18230",
+                        "locality": "St Doulchard",
+                        "latitude": "",
+                        "longitude": "",
+                        "description": ""
                     }
                 },
                 "Liens": {
-                    "type": "HTML",
+                    "type": "Text",
                     "title": "Liens",
-                    "titleLevel": 3,
+                    "titleLevel": 2,
                     "id": "Liens",
-                    "tag": "div",
-                    "CSSClasses": [
-
-                    ],
+                    "tag": "section",
+                    "CSSClasses": [],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
-                        "md": 4,
+                        "md": 3,
                         "lg": 0
                     },
                     "properties": {
-                        "content": null
+                        "content": "* [Page Facebook du club][1]\r\n* [Bourges Volley Ball][2]\r\n\r\n\r\n  [1]: http:\/\/www.facebook.com\/asso.saintdoul\r\n  [2]: http:\/\/bourgesvolley.clubeo.com\/ "
                     }
                 }
             }

@@ -13,13 +13,13 @@ use Alerts\Alert;
 use Content\Block;
 use Michelf\MarkdownExtra;
 
-class HTMLBlock extends Block{
+class TextBlock extends Block{
 
 	/**
 	 * Type de bloc
 	 * @var string
 	 */
-	protected $type = 'HTML';
+	protected $type = 'Text';
 
 	/**
 	 * Contenu HTML
@@ -35,12 +35,7 @@ class HTMLBlock extends Block{
 	 */
 	public function getContent($rawContent = false) {
 		if (!$rawContent){
-			//$content = MarkdownExtra::defaultTransform(htmlspecialchars_decode($this->content));
-			$content = MarkdownExtra::defaultTransform($this->content);
-			// Gestion des antislashes dans les balises code (les antislashes sont doublés dans ces cas-là par le système)
-			$content = str_replace('\\\\', '\\', $content);
-			// Passer les images en responsive
-			$content =  str_replace('<img ', '<img class="img-responsive" ', $content);
+			$content = \Sanitize::MarkdownToHTML($this->content);
 		}else{
 			$content = $this->content;
 		}
@@ -78,7 +73,7 @@ class HTMLBlock extends Block{
 
 	public function getExcerpt(){
 		parent::getExcerpt();
-		if ($this->content) { ?><p>Contenu : <code><?php echo \Get::excerpt($this->content, 40); ?></code></p><?php }
+		if ($this->content) { ?><p class="small">Contenu : <code><?php echo \Get::excerpt($this->content, 40); ?></code></p><?php }
 	}
 
 	public function getFormCustomFields(){

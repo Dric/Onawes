@@ -59,6 +59,13 @@ class ContentManager {
 		6 => 'Titre de moindre importance'
 	);
 
+	protected $NewsCategories = array(
+		'Vie du club',
+		'Volley',
+		'FutSal',
+		'Badminton'
+	);
+
 
 	public function __construct(){
 		global $settings, $adminMode;
@@ -158,6 +165,7 @@ class ContentManager {
 			foreach ($jsonArray['rows'] as $jsonRow){
 				$row = new Row ($jsonRow['id'], $fileName);
 				$row->setTitle($jsonRow['title']);
+				$row->setIsMenuItem($jsonRow['isMenuItem']);
 				$row->setTag($jsonRow['tag']);
 				foreach ($jsonRow['CSSClasses'] as $class){
 					$row->addCSSClass($class);
@@ -185,6 +193,9 @@ class ContentManager {
 					}
 				}
 				$page->addRow($row);
+				if ($row->isIsMenuItem()){
+					$page->addMenuItem(new MenuItem($row->getId(), $row->getTitle(), '#'.$row->getId(), 0));
+				}
 			}
 		}
 		return $page;
@@ -206,10 +217,11 @@ class ContentManager {
 	}
 
 	public function editSite(){
-		global $themes;
+		global $Content, $themes;
 		$this->currentTheme->toHTMLHeader();
 		$siteTheme = (isset($this->siteSettings['theme'])) ? $this->siteSettings['theme'] : null;
 		$mainPage = (isset($this->siteSettings['mainPage'])) ? $this->siteSettings['mainPage'] : null;
+		$mainTitle = (isset($this->siteSettings['mainTitle'])) ? $this->siteSettings['mainTitle'] : null;
 		?>
 		<h2>Paramètres du site</h2>
 		<div class="row">
@@ -218,11 +230,15 @@ class ContentManager {
 					<div class="row">
 						<div class="col-md-5">
 							<div class="form-group">
+								<label class="control-label" for="mainTitle">Titre du site</label>
+								<input type="text" class="form-control input-sm" placeholder="Titre" name="mainTitle" <?php if (!empty($mainTitle)) echo 'value="'.$mainTitle.'"' ?> required>
+							</div>
+							<div class="form-group">
 								<label class="control-label" for="theme">Thème</label>
 								<select class="form-control" id="theme" name="theme" required>
 									<option></option>
 									<?php
-									foreach ($themes as $theme){
+									foreach ($Content->getThemes() as $theme){
 										if ($theme != 'Edit') {
 											?>
 											<option <?php if ($siteTheme == $theme) echo 'selected'; ?>>
@@ -258,6 +274,131 @@ class ContentManager {
 			</div>
 		</div>
 		<?php
+		$this->currentTheme->toHTMLFooter();
+	}
+
+	public function editNews(){
+		global $Content, $settings;
+		$fs = new Fs($this->contentDir.DIRECTORY_SEPARATOR.'News');
+		$newsFiles = array();
+		$editMode = false;
+		foreach ($this->NewsCategories as $cat){
+			if ($fs->folderExists(\Sanitize::sanitizeFilename($cat))) {
+				$newsFiles = array_merge($fs->getFilesInDir(\Sanitize::sanitizeFilename($cat), 'json', array('extension',
+				                                                                                             'dateCreated',
+				                                                                                             'parentDir'
+				), true), $newsFiles);
+			}
+		}
+		$newsFiles = \Sanitize::sortObjectList($newsFiles, array('dateCreated'), 'DESC');
+		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
+		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
+		$this->currentTheme->toHTMLHeader();
+
+		if (isset($_REQUEST['item'])){
+			// Even if item is requested, this can be a deleting request. If so, we cannot edit the deleted newsItem anymore...
+			list($category, $fileName) = explode('__', $_REQUEST['item']);
+			$toSearch = $this->contentDir.DIRECTORY_SEPARATOR.'News'.DIRECTORY_SEPARATOR.strtolower($category).DIRECTORY_SEPARATOR.$fileName;
+			$ret = \Get::getObjectsInList($newsFiles, 'fullName', $toSearch);
+			// $editMode is true only if the item is found in items list.
+			$editMode = !empty($ret);
+		}
+		$titleH2 = 'Créer un article';
+		if ($editMode){
+			$itemEdit = new NewsItem($category, $fileName);
+			$titleH2 = 'Modifier l\'article '.$itemEdit->getTitle();
+		}
+		?>
+		<h2><?php echo $titleH2; ?></h2>
+		<div class="row">
+			<div class="col-md-12">
+				<form class="" method="post">
+					<div class="form-group">
+						<label class="control-label" for="fileName">Titre</label>
+						<div class="input-group">
+							<input type="text" class="form-control input-sm" placeholder="Titre" name="newsItem_title" <?php if ($editMode) echo 'value="'.$itemEdit->getTitle().'"' ?> required>
+						</div><!-- /input-group -->
+					</div>
+					<div class="form-group">
+						<label class="control-label" for="newsItem_category">Catégorie</label>
+						<div class="input-group">
+							<select class="form-control" id="newsItem_category" name="newsItem_category" <?php if ($editMode) echo 'disabled'; ?>>
+								<?php
+								foreach ($Content->getNewsCategories() as $cat){
+									?><option <?php if ($editMode and strtolower($category) == \Sanitize::sanitizeFilename($cat)) echo 'selected'; ?>><?php echo $cat; ?></option><?php
+								}
+								?>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="newsItem_content">Contenu</label>
+						<textarea name="newsItem_content" id="newsItem_content" class="form-control" rows="8"><?php	if ($editMode) echo $itemEdit->getContent(true);	?></textarea>
+					</div>
+					<button class="btn btn-primary" type="submit" name="request" value="publishNewsItem"><?php echo ($editMode) ? 'Modifier' : 'Publier'; ?> l'article</button>
+					<?php if ($editMode) { ?>
+						<input type="hidden" name="newsItem_category" value="<?php echo $itemEdit->getCategory(); ?>">
+						<input type="hidden" name="newsItem_fileName" value="<?php echo $fileName; ?>">
+						<a class="btn btn-default" href="<?php echo Template::createURL(array('edit' => true, 'page' => 'news')); ?>">Ajouter un article</a>
+					<?php } ?>
+				</form>
+			</div>
+		</div>
+		<h2>Liste des articles</h2>
+		<div class="row">
+			<div class="col-md-12">
+				<table class="table table-striped">
+					<thead>
+					<tr>
+						<th>Titre</th>
+						<th>Catégorie</th>
+						<th>Date de création</th>
+					</tr>
+					</thead>
+					<?php
+					/** @var File $newsItemFile */
+					foreach ($newsFiles as $newsItemFile){
+						$newsItem = new NewsItem(trim(str_replace($this->contentDir.DIRECTORY_SEPARATOR.'News'.DIRECTORY_SEPARATOR, '', $newsItemFile->parentFolder), DIRECTORY_SEPARATOR), $newsItemFile->baseName);
+						$urlEdit  = Template::createURL(array('edit' => true, 'page' => 'news', 'item' => (\Sanitize::sanitizeFilename(($newsItem->getCategory().'__'.$newsItem->getFileName())))));
+						$urlDel   = Template::createURL(array('edit' => true, 'page' => 'news', 'item' => (\Sanitize::sanitizeFilename($newsItem->getCategory().'__'.$newsItem->getFileName())), 'request' => 'delNewsItem'));
+						?>
+						<tr>
+							<td>
+								<?php echo $newsItem->getTitle(); ?>
+							</td>
+							<td>
+								<?php	echo $newsItem->getCategory(); ?>
+							</td>
+							<td>
+								<a class="btn btn-default btn-sm" href="<?php echo $urlEdit; ?>">Modifier</a>
+								<a class="btn btn-default btn-sm" href="<?php echo $urlDel; ?>">Supprimer</a>
+							</td>
+						</tr>
+						<?php
+					}
+					?>
+				</table>
+			</div>
+		</div>
+
+		<!-- Modal -->
+		<div class="modal fade" id="mediaManagerModal" tabindex="-1" role="dialog" aria-labelledby="MediaManager" data-ajaxToLoad="<?php echo $settings->absoluteURL.'/?ajax=showMediaManager'; ?>" data-ajaxLibrary="<?php echo $settings->absoluteURL.'/?ajax=reloadGallery'; ?>">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="myModalLabel">Gestionnaire de medias</h4>
+					</div>
+					<div class="modal-body">
+					</div>
+				</div>
+			</div>
+		</div><!-- end modal -->
+		<?php
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
+		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
+		//\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
 		$this->currentTheme->toHTMLFooter();
 	}
 
@@ -362,15 +503,9 @@ class ContentManager {
 	 * @param Page $page
 	 */
 	public function editPage(Page $page){
-		global $settings, $cssFiles, $themes;
+		global $settings;
 		$rowPosition = null;
 		$refRow = null;
-		/*if (empty($page->getTheme()) or !in_array($page->getTheme(), $themes)){
-			new Alert('error', 'Erreur : le thème de la page est introuvable ou n\'est pas défini ! Le thème par défaut sera utilisé !');
-			$theme = 'Home';
-		}else{
-			$theme = $page->getTheme();
-		}*/
 		$fileName = $page->getFileName();
 		if (isset($_REQUEST['addRow'])){
 			if (isset($_REQUEST['refRow'])){
@@ -380,9 +515,7 @@ class ContentManager {
 		}
 		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
 		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
-		//$themeClass = '\\Themes\\'.$theme;
 		$this->currentTheme->toHTMLHeader();
-		//$page->toHTMLHeader();
 		?><h2>Edition de la page <code><?php echo $page->getTitle(); ?></code></h2><?php
 
 		?>
@@ -453,18 +586,14 @@ class ContentManager {
 					</div>
 					<div class="modal-body">
 					</div>
-					<!--<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
-						<button type="button" class="btn btn-primary"></button>
-					</div>-->
 				</div>
 			</div>
-		</div>
+		</div><!-- end modal -->
 		<?php
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
 		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
+		//\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
 		$this->currentTheme->toHTMLFooter();
 	}
 
@@ -492,41 +621,57 @@ class ContentManager {
 			<div class="col-md-12" id="row_<?php echo $row->getId(); ?>">
 				<div class="panel panel-default">
 					<div class="panel-body">
-						<form class="well form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#row_<?php echo $row->getId(); ?>" method="post">
+						<form class="well form-inline" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#row_<?php echo $row->getId(); ?>" method="post">
 							<h3><?php if (!$row->isUnsaved()) { ?>Ligne <code><?php echo $row->getTitle(); ?></code><?php } else { ?>Ajouter une nouvelle ligne<?php }?></h3>
 							<div class="form-group">
-								<label class="col-sm-5 control-label" for="row_<?php echo $row->getId(); ?>_newId">ID</label>
-								<div class="col-sm-5">
+								<label class="control-label" for="row_<?php echo $row->getId(); ?>_newId">ID</label>
+								<div class="">
 									<input type="text" class="form-control" id="row_<?php echo $row->getId(); ?>_newId" name="row_<?php echo $row->getId(); ?>_newId" value="<?php echo $row->getId(); ?>" required>
 								</div>
 							</div>
+							<div class="form-group">
+								<label class="control-label" for="row_<?php echo $row->getId(); ?>_title">Titre de menu</label>
+								<div class="">
+									<input type="text" class="form-control" id="row_<?php echo $row->getId(); ?>_title" name="row_<?php echo $row->getId(); ?>_title" value="<?php echo $row->getTitle(); ?>">
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="checkbox">
+									<label class="control-label">
+										<input type="checkbox" id="row_<?php echo $row->getId(); ?>_isMenuItem" name="row_<?php echo $row->getId(); ?>_isMenuItem" <?php if($row->isIsMenuItem()) echo 'checked'; ?>> Inclure dans le menu
+									</label>
+								</div>
+							</div>
+							<div class="clearfix"><br></div>
 							<input type="hidden" name="fileName" value="<?php echo $fileName; ?>">
 							<input type="hidden" name="rowId" value="<?php echo $row->getId(); ?>">
 							<input type="hidden" name="position" value="<?php echo $rowPosition; ?>">
 							<button type="submit" class="btn btn-primary" name="request" value="saveRow">Enregistrer</button>
 							<?php if ($row->getId() != 'newRow'){ ?>
-								<button type="submit" name="request" value="delRow" class="btn btn-danger">Supprimer</button>
+							<div class="btn-group pull-right" role="group" aria-label="Actions">
 								<div class="btn-group">
-									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Ajouter une ligne <span class="caret"></span>
+									<button type="button" class="btn btn-default dropdown-toggle tooltip-top" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ajouter une ligne">
+										<span class="fa fa-plus"> <!--<span class="caret">--></span>
 									</button>
 									<ul class="dropdown-menu">
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=before&refRow=<?php echo $row->getId(); ?>#row_newRow">Avant cette ligne</a></li>
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addRow=after&refRow=<?php echo $row->getId(); ?>#row_newRow">Après cette ligne</a></li>
+										<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'addRow' => 'before', 'refRow' => $row->getId())); ?>#row_<?php echo $row->getId(); ?>">Avant cette ligne</a></li>
+										<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'addRow' => 'after', 'refRow' => $row->getId())); ?>#row_<?php echo $row->getId(); ?>">Après cette ligne</a></li>
 									</ul>
 								</div>
 								<div class="btn-group">
-									<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-										Déplacer <span class="caret"></span>
+									<button type="button" class="btn btn-default dropdown-toggle tooltip-top" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Déplacer la ligne">
+										<span class="fa fa-arrows"> <!--<span class="caret">--></span>
 									</button>
 									<ul class="dropdown-menu">
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=before&refRow=<?php echo $row->getId(); ?>#row_<?php echo $row->getId(); ?>">Vers le haut</a></li>
-										<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveRow&moveRow=after&refRow=<?php echo $row->getId(); ?>#row_<?php echo $row->getId(); ?>">Vers le bas</a></li>
+										<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'request' => 'moveRow', 'moveRow' => 'before', 'refRow' => $row->getId())); ?>#row_<?php echo $row->getId(); ?>">Vers le haut</a></li>
+										<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'request' => 'moveRow', 'moveRow' => 'after', 'refRow' => $row->getId())); ?>#row_<?php echo $row->getId(); ?>">Vers le bas</a></li>
 									</ul>
 								</div>
+								<button type="submit" name="request" value="delRow" class="btn btn-danger tooltip-top" title="Supprimer"><span class="fa fa-trash"></span></button>
+							</div>
 							<?php } ?>
 						</form>
-						<div class="row">
+						<div class="row edit-row">
 							<?php
 							$nbBlocks = 0;
 							if (empty($row->getBlocks()) and !$row->isUnsaved()) {
@@ -541,25 +686,25 @@ class ContentManager {
 										$addBlock = new $blocType('newBlock', $row->getId());
 										$this->editBlock($addBlock, $fileName, $row->getBlockPosition($block->getBlockId()));
 										// even (impair) number
-										if ($nbBlocks%2 != 1){
+										/*if ($nbBlocks%2 != 1){
 											?><div class="clearfix"></div><?php
-										}
+										}*/
 									}
 									$nbBlocks++;
 									$this->editBlock($block, $fileName, $row->getBlockPosition($block->getBlockId()));
 									// even (impair) number
-									if ($nbBlocks%2 != 1){
+									/*if ($nbBlocks%2 != 1){
 										?><div class="clearfix"></div><?php
-									}
+									}*/
 									// Nouveau block après le bloc référent
 									if ($refBlock == $block->getFullId() and $blockPosition == 'after'){
 										$nbBlocks++;
 										$addBlock = new Block('newBlock', $row->getId());
 										$this->editBlock($addBlock, $fileName, $row->getBlockPosition($block->getBlockId()) + 1);
 										// even (impair) number
-										if ($nbBlocks%2 != 1){
+										/*if ($nbBlocks%2 != 1){
 											?><div class="clearfix"></div><?php
-										}
+										}*/
 									}
 								}
 							}
@@ -578,10 +723,10 @@ class ContentManager {
 	 * @param string $fileName File Name where is saved the block
 	 */
 	public function editBlock(Block $block, $fileName, $position){
-		global $settings, $blockTypes;
+		global $Content;
 		?>
-		<div class="col-lg-6" id="block_<?php echo $block->getFullId(); ?>">
-			<form class="well <?php if ($block->IsUnsaved()) { ?>well-warning<?php } ?> form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#block_<?php echo $block->getFullId(); ?>" method="post">
+		<div class="<?php echo $block->getHTMLCssWidth(); ?>" id="block_<?php echo $block->getFullId(); ?>">
+			<form class="edit-form well <?php if ($block->IsUnsaved()) { ?>well-warning<?php } ?> form-horizontal" action="<?php echo Template::createURL(array('edit'=>true, 'page'=>$fileName)); ?>#block_<?php echo $block->getFullId(); ?>" method="post">
 				<?php $block->getExcerpt(); ?>
 				<?php
 				if ($block->isUnsaved()){
@@ -597,7 +742,7 @@ class ContentManager {
 						<div class="col-sm-5">
 							<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_type" name="block_<?php echo $block->getFullId(); ?>_type" required>
 								<?php
-								foreach ($blockTypes as $blockType){
+								foreach ($Content->getBlockTypes() as $blockType){
 									?><option <?php if ($blockType == $block->getType()) echo 'selected'; ?>><?php echo $blockType; ?></option><?php
 								}
 								?>
@@ -607,9 +752,33 @@ class ContentManager {
 					<?php
 				}else{
 				?>
-				<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#<?php echo $block->getFullId(); ?>_editPanel" aria-expanded="false" aria-controls="CollapseEditPanel">
-					Modifier
+				<button class="btn btn-primary tooltip-top block-edit-button" title="Modifier" type="button" data-toggle="collapse" data-block-id="<?php echo $block->getFullId(); ?>" data-target="#<?php echo $block->getFullId(); ?>_editPanel" aria-expanded="false" aria-controls="CollapseEditPanel">
+					<span class="fa fa-edit"></span>
 				</button>
+				<?php if (!$block->isUnsaved()){ ?>
+					<div class="btn-group pull-right" role="group" aria-label="Actions">
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle tooltip-top" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ajouter un bloc">
+								<span class="fa fa-plus"> <!--<span class="caret">--></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'addBlock' => 'before', 'refBlock' => $block->getFullId())); ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Avant ce bloc</a></li>
+								<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'addBlock' => 'after', 'refBlock' => $block->getFullId()));  ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Après ce bloc</a></li>
+							</ul>
+						</div>
+						<div class="btn-group">
+							<button type="button" class="btn btn-default dropdown-toggle tooltip-top" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Déplacer le bloc">
+								<span class="fa fa-arrows"> <!--<span class="caret">--></span>
+							</button>
+							<ul class="dropdown-menu">
+								<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'request' => 'moveBlock', 'moveBlock' => 'before', 'refBlock' => $block->getFullId())); ?>#block_<?php echo $block->getFullId(); ?>">Vers le haut</a></li>
+								<li><a href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'request' => 'moveBlock', 'moveBlock' => 'after', 'refBlock' => $block->getFullId())); ?>#block_<?php echo $block->getFullId(); ?>">Vers le bas</a></li>
+							</ul>
+						</div>
+						<a class="btn btn-danger tooltip-top" href="<?php echo Template::createURL(array('edit' => true, 'page' => $fileName, 'request' => 'delBlock', 'blockFullId' => $block->getFullId())); ?>" title="Supprimer"><span class="fa fa-trash"></span></a>
+					</div>
+
+				<?php } ?>
 				<div class="collapse" id="<?php echo $block->getFullId(); ?>_editPanel">
 					<div class="form-group">
 						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_title">Titre</label>
@@ -673,31 +842,46 @@ class ContentManager {
 					<input type="hidden" name="blockType" value="<?php echo $block->getType(); ?>">
 					<input type="hidden" name="position" value="<?php echo $position; ?>">
 					<button type="submit" class="btn btn-primary" name="request" value="saveBlock">Enregistrer</button>
-					<?php if (!$block->isUnsaved()){ ?>
-						<button type="submit" name="request" value="delBlock" class="btn btn-danger">Supprimer</button>
-						<div class="btn-group">
-							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								Ajouter un bloc <span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu">
-								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addBlock=before&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Avant ce bloc</a></li>
-								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&addBlock=after&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getParentId(); ?>-newBlock">Après ce bloc</a></li>
-							</ul>
-						</div>
-						<div class="btn-group">
-							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								Déplacer <span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu">
-								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveBlock&moveBlock=before&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getFullId(); ?>">Vers le haut</a></li>
-								<li><a href="<?php echo $settings->editURL; ?>&page=<?php echo $fileName; ?>&request=moveBlock&moveBlock=after&refBlock=<?php echo $block->getFullId(); ?>#block_<?php echo $block->getFullId(); ?>">Vers le bas</a></li>
-							</ul>
-						</div>
-					<?php } ?>
 				</div>
 			</form>
 		</div>
 		<?php
+	}
+
+	protected function saveNewsItem(){
+		global $Content;
+		if (!isset($_REQUEST['newsItem_title'])){
+			new Alert('error', 'Erreur : le titre de l\'article n\'a pas été fourni !');
+			return false;
+		}
+		if (!isset($_REQUEST['newsItem_content'])){
+			new Alert('error', 'Erreur : l\'article est vide !');
+			return false;
+		}
+		if (!isset($_REQUEST['newsItem_category']) or !in_array($_REQUEST['newsItem_category'], $Content->getNewsCategories())){
+			new Alert('error', 'Erreur : la catégorie n\'a pas été renseignée ou elle est incorrecte !');
+			return false;
+		}
+
+		$newItem = new NewsItem($_REQUEST['newsItem_category'], \Sanitize::sanitizeFilename($_REQUEST['newsItem_title']), $_REQUEST['newsItem_title']);
+		$newItem->setContent($_REQUEST['newsItem_content']);
+		$fs = new Fs($this->contentDir.DIRECTORY_SEPARATOR.'News');
+		$fs->createFolder(\Sanitize::sanitizeFilename($_REQUEST['newsItem_category']));
+		// On renomme l'ancien fichier si le titre a changé (et donc le nom de fichier), ce qui permet de conserver la date de création du fichier même si celui-ci est écrasé
+		if (isset($_REQUEST['newsItem_fileName']) and $_REQUEST['newsItem_fileName'] != $newItem->getFileName() . '.json'){
+			$ret = $fs->renameFile(\Sanitize::sanitizeFilename($_REQUEST['newsItem_category']). DIRECTORY_SEPARATOR .$_REQUEST['newsItem_fileName'], \Sanitize::sanitizeFilename($_REQUEST['newsItem_category']). DIRECTORY_SEPARATOR . $newItem->getFileName() . '.json');
+		}
+		return $fs->writeFile(\Sanitize::sanitizeFilename($_REQUEST['newsItem_category']). DIRECTORY_SEPARATOR . $newItem->getFileName() . '.json', $newItem->toJSON());
+	}
+
+	protected function delNewsItem($itemName){
+		list($category, $fileName) = explode('__', $itemName);
+		$fs = new Fs($this->contentDir.DIRECTORY_SEPARATOR.'News'.DIRECTORY_SEPARATOR.$category);
+		$ret = $fs->removeFile($fileName);
+		if ($ret){
+			new Alert('success', 'L\'article a été effacé !');
+		}
+		return $ret;
 	}
 
 	public function processRequest(){
@@ -706,21 +890,33 @@ class ContentManager {
 			new Alert('error','Erreur : la page n\'est pas renseignée.');
 			return false;
 		}
-		var_dump($_REQUEST);
+		//var_dump($_REQUEST);
 		$fileName = (isset($_REQUEST['fileName'])) ? $_REQUEST['fileName'] : ((isset($_REQUEST['page'])) ? $_REQUEST['page'] : $requestedPage) ;
 		$position = (isset($_REQUEST['position'])) ? (int)$_REQUEST['position'] : null;
 		$page = null;
 		$ret = false;
 		$dontSavePage = false;
-		if (!in_array($_REQUEST['request'], array('delPage', 'restoreBackup', 'createPage', 'saveSiteSettings'))){
+		if (!in_array($_REQUEST['request'], array('delPage', 'restoreBackup', 'createPage', 'saveSiteSettings', 'publishNewsItem', 'delNewsItem'))){
 			$page = $this->addPageFromJSON($fileName);
 		}
 		switch ($_REQUEST['request']){
 			case 'saveSiteSettings':
-				$siteSettings = array_intersect_key($_REQUEST, array_flip(array('theme', 'mainPage')));
+				$siteSettings = array_intersect_key($_REQUEST, array_flip(array('theme', 'mainPage', 'mainTitle')));
 				$this->saveSiteSettings($siteSettings);
 				// We load settings again
 				$this->populateSiteSettings();
+				$dontSavePage = true;
+				break;
+			case 'publishNewsItem':
+				$ret = $this->saveNewsItem();
+				$dontSavePage = true;
+				break;
+			case 'delNewsItem':
+				if (!isset($_REQUEST['item'])){
+					New Alert('error', 'Erreur : le nom de l\'article n\'est pas renseigné !');
+					return false;
+				}
+				$ret = $this->delNewsItem(\Sanitize::SanitizeForDb($_REQUEST['item'], false));
 				$dontSavePage = true;
 				break;
 			case 'createPage':
@@ -752,7 +948,12 @@ class ContentManager {
 					return false;
 				}
 				$rowId = \Sanitize::SanitizeForDb($_REQUEST['rowId'], false);
-				$rowToSave = new Row($rowId, $fileName);
+				$rows = $page->getRows();
+				if (isset($rows[$rowId])){
+					$rowToSave = $rows[$rowId];
+				}else{
+					$rowToSave = new Row($rowId, $fileName);
+				}
 				if ($rowId == 'newRow' and (!isset($_REQUEST['row_'.$rowToSave->getId().'_newId']) or $_REQUEST['row_'.$rowToSave->getId().'_newId'] == 'newRow')){
 					new Alert('error', 'Erreur : Vous devez indiquer une ID différente de <code>newRow</code>pour cette ligne');
 					return false;
@@ -761,6 +962,11 @@ class ContentManager {
 					$newRowId = str_replace(' ', '_', \Sanitize::SanitizeForDb($_REQUEST['row_'.$rowToSave->getId().'_newId'], false));
 					$rowToSave->setId($newRowId);
 				}
+				if (isset($_REQUEST['row_'.$rowToSave->getId().'_title'])){
+					$rowTitle = str_replace(' ', '_', \Sanitize::SanitizeForDb($_REQUEST['row_'.$rowToSave->getId().'_title'], false));
+					$rowToSave->setTitle($rowTitle);
+				}
+				$rowToSave->setIsMenuItem(isset($_REQUEST['row_'.$rowToSave->getId().'_isMenuItem']));
 				$page->addRow($rowToSave, $rowId, $position);
 				break;
 			case 'delRow':
@@ -787,7 +993,7 @@ class ContentManager {
 					return false;
 				}
 				$blockFullId = \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false);
-				list($rowId, $blockId) = explode('-', $blockFullId);
+				list($rowId, $blockId) = explode('__', $blockFullId);
 				if (empty($rowId) or empty($blockId)) {
 					new Alert('error','Ajout de bloc : l\'ID du block ou de la ligne n\'est pas renseignée correctement.');
 					return false;
@@ -840,7 +1046,7 @@ class ContentManager {
 					new Alert('error','Suppression de bloc : l\'ID du bloc n\'est pas renseigné.');
 					return false;
 				}
-				list($rowId, $blockId) = explode('-', \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false));
+				list($rowId, $blockId) = explode('__', \Sanitize::SanitizeForDb($_REQUEST['blockFullId'], false));
 				if (empty($rowId) or empty($blockId)) {
 					new Alert('error','Suppression de bloc : l\'ID du bloc ou de la ligne n\'est pas renseignée correctement.');
 					return false;
@@ -852,7 +1058,7 @@ class ContentManager {
 					new Alert('error','Déplacement de bloc : l\'ID du bloc n\'est pas renseigné.');
 					return false;
 				}
-				list($rowId, $blockId) = explode('-', \Sanitize::SanitizeForDb($_REQUEST['refBlock'], false));
+				list($rowId, $blockId) = explode('__', \Sanitize::SanitizeForDb($_REQUEST['refBlock'], false));
 				if (empty($rowId) or empty($blockId)) {
 					new Alert('error','Déplacement de bloc : l\'ID du bloc ou de la ligne n\'est pas renseignée correctement.');
 					return false;
@@ -1021,6 +1227,20 @@ class ContentManager {
 			$jsonArray['ok'] = false;
 		}
 		exit(json_encode($jsonArray));
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getNewsCategories() {
+		return $this->NewsCategories;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getContentDir() {
+		return $this->contentDir;
 	}
 
 }

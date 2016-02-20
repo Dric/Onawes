@@ -180,7 +180,7 @@ class ContactFormBlock extends Block{
 			</div>
 			<div class="form-group">
 				<label for="email_SenderEmail">Votre addresse Email <span title="Obligatoire" class="required tooltip-bottom">*</span></label>
-				<input type="text" name="email_SenderEmail" id="email_SenderEmail" placeholder="Email" class="form-control" required>
+				<input type="email" name="email_SenderEmail" id="email_SenderEmail" placeholder="Email" class="form-control" required>
 			</div>
 			<div class="form-group">
 				<label for="email_SenderName">Votre Nom/Pseudo <span title="Obligatoire" class="required tooltip-bottom">*</span></label>

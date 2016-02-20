@@ -25,12 +25,21 @@
  *
  * @property-read string  $contentDir     Chemin du contenu
  * @property-read bool    $prettyURL      Utilisation des pretty URL
+ *
+ * @WARNING : if you want to make changes to this file, don't do it ! Create a `LocalSettings.php` file instead, and paste this :
+ *
+ * <?php
+
+		class LocalSettings extends Settings {
+		protected $authPwd    = '';
+
+	}
  */
 class Settings {
 
 	protected $authMode       = 'file';
-	protected $authPwd        = '123';
-	protected $authCookieName = 'PasSage';
+	protected $authPwd        = 'jKJKHhbkJl241D;v4ghllj,s%^p^sn2;kksfh34<F46421d';
+	protected $authCookieName = 'onawes';
 	protected $authSaltKey    = 'Kqw+LP1P_P(;7 zU/DRSo0g%P~vrPMjHk2558r)C]5RX:jD~}9,Bgy#+$-pOVkhp';
 
 	protected $debug          = false;

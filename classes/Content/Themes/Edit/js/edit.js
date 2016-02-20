@@ -1,4 +1,24 @@
 /**
+ * Created by Dric on 18/02/2016.
+ */
+$(".block-edit-button").click(function(e) {
+	e.preventDefault();
+	var blockId = $(this).data('block-id');
+	var $blockDiv = $(this).parents('#block_'+blockId);
+	if ($blockDiv.data('old-class')){
+		$blockDiv.attr('class', $blockDiv.data('old-class'));
+		$blockDiv.removeData('old-class');
+		$form = $blockDiv.children('form');
+		$form.attr('style', $form.data('style'));
+	}else{
+		$blockDiv.data('old-class', $blockDiv.attr('class')).attr('class', 'col-md-12');
+		$form = $blockDiv.children('form');
+		$form.data('style', $form.attr('style')).removeAttr('style');
+	}
+	$(this).tooltip('hide');
+});
+
+/**
  * Created by cedric.gallard on 29/01/2016.
  */
 $('textarea').pagedownBootstrap({
@@ -12,7 +32,7 @@ $('textarea').pagedownBootstrap({
 						$('.fileinput-upload-button').hide();
 					}).on('fileuploaded', function(event, data, previewId, index) {
 						/*var form = data.form, files = data.files, extra = data.extra,
-							response = data.response, reader = data.reader;*/
+						 response = data.response, reader = data.reader;*/
 						$('#library').load(libraryUrl, function(){
 							mediaActions($modal, callback);
 						});
@@ -27,6 +47,10 @@ $('textarea').pagedownBootstrap({
 		}
 	}]
 });
+
+//Same height for blocks in a row
+$('.edit-row').eqHeight('.edit-form');
+
 
 function mediaActions($modal, callback){
 	$('.mediaInsert').on("click", function(e){

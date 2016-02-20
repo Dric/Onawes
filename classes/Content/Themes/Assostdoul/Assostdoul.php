@@ -8,17 +8,22 @@
 
 namespace Content\Themes;
 
+use Content\Menu;
 use Content\Theme;
 use Template;
 
 class Assostdoul extends Theme{
 
-	public function toHTMLHeader($cssFiles = null){
+	protected $title = 'Association St Doul';
+
+	public function toHTMLHeader(Menu $menu = null, $title = '', $cssFiles = null){
 		global $settings;
+		Template::addJsToFooter('<script src="'.$this->getUrlThemeBase().'/js/assostdoul.js"></script>');
+		if (empty($title)) $title = $this->title;
 		if (empty($cssFiles)) $cssFiles = $this->cssFiles;
-		Template::header($cssFiles, $this->title);
+		Template::header($cssFiles, $title);
 		?>
-		<body data-spy="scroll" data-target=".navbar" data-offset="60">
+		<body data-spy="scroll" data-target="#navigationMenu" data-offset="60">
 	<div id="wrapper">
 		<!-- Si javascript n'est pas activé, on prévient l'utilisateur que ça peut merder... -->
 		<noscript>
@@ -34,28 +39,25 @@ class Assostdoul extends Theme{
 		<header>
 			<div id="nav-wrapper" class="">
 				<nav class="navbar navbar-default navbar-fixed-top container">
-					<div class="">
-						<!-- Brand and toggle get grouped for better mobile display -->
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navigation-menu" aria-expanded="false">
-								<span class="sr-only">Menu</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-							<a class="navbar-brand" href="<?php echo $settings->absoluteURL; ?>" >Association St Doul'</a>
-						</div>
+					<!-- Brand and toggle get grouped for better mobile display -->
+					<div class="navbar-header">
+						<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navigationMenu" aria-expanded="false">
+							<span class="sr-only">Menu</span>
+							<span class="fa fa-bars"></span>
+						</button>
+						<a class="navbar-brand" href="<?php echo $settings->absoluteURL; ?>" >Association St Doul'</a>
+					</div>
 
-						<!-- Collect the nav links, forms, and other content for toggling -->
-						<div class="collapse navbar-collapse" id="navigation-menu">
-							<ul class="nav navbar-nav">
-								<li><a href="#news">Actualités</a></li>
-								<li><a href="#sections">Sections</a></li>
-								<li><a href="#gymnase">Gymnase</a></li>
-								<li><a href="#contact">Contact</a></li>
-							</ul>
-						</div><!-- /.navbar-collapse -->
-					</div><!-- /.container-fluid -->
+					<!-- Collect the nav links, forms, and other content for toggling -->
+					<div class="collapse navbar-collapse" id="navigationMenu">
+						<?php
+						if (!empty($menu)) {
+							$menu->addCSSClass('nav navbar-nav');
+							$menu->toHTML();
+						}
+						?>
+
+					</div><!-- /.navbar-collapse -->
 				</nav>
 			</div>
 		</header>
@@ -74,12 +76,7 @@ class Assostdoul extends Theme{
 					</div>
 				</div>
 		</div>
-		<div class="row">
-			<div class="col-md-4 col-md-offset-4" id="alert">
-			</div>
-		</div>
-		<div class="space-top">
-		<div class="page-content inset">
+		<div class="page-content inset space-top">
 		<?php
 	}
 }

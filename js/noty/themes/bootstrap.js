@@ -42,10 +42,10 @@ $.noty.themes.bootstrapTheme = {
         }
 
         this.$message.css({
-            fontSize: '13px',
-            lineHeight: '16px',
+            fontSize: '15px',
+            lineHeight: '18px',
             textAlign: 'center',
-            padding: '8px 10px 9px',
+            padding: '10px 12px 11px',
             width: 'auto',
             position: 'relative'
         });

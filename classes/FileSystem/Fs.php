@@ -282,6 +282,10 @@ class Fs {
 		return false;
 	}
 
+	public function folderExists($fileName, $caseSensitive = false){
+		return $this->fileExists($fileName, $caseSensitive = false);
+	}
+
 	/**
 	 * Retourne des informations sur un fichier
 	 *
@@ -391,6 +395,13 @@ class Fs {
 			return false;
 		}
 		new Alert('success', 'Les modifications ont été enregistrées dans le fichier <code>'.$fileName.'</code>');
+		return true;
+	}
+
+	public function createFolder($folder){
+		if (!$this->folderExists($folder)){
+			return @mkdir($this->mountName . DIRECTORY_SEPARATOR . $folder);
+		}
 		return true;
 	}
 

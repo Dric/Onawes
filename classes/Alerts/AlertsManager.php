@@ -76,7 +76,7 @@ class AlertsManager {
 		$content = (($alert->getTitle() != '') ? '<h3>'.$alert->getTitle().'</h3>':'').Sanitize::SanitizeForJs($alert->getContent());
 		?>
 		<script>
-		noty({
+		var n = noty({
 			text: '<?php echo $content; ?>',
 			theme: 'bootstrapTheme',
 			type: '<?php echo $type ?>',
@@ -85,6 +85,7 @@ class AlertsManager {
 				open: 'animated <?php echo $animation; ?>', // Animate.css class names
 				close: 'animated flipOutX' // Animate.css class names
 			},
+			timeout: 3000,
 			closeWith: ['click', 'button']
 		});
 		</script>

@@ -28,10 +28,11 @@ class Theme {
 		$this->populateCssFiles();
 	}
 
-	public function toHTMLHeader($cssFiles = null){
+	public function toHTMLHeader(Menu $menu = null, $title = null, $cssFiles = null){
 		global $settings;
+		if (empty($title)) $title = $this->title;
 		if (empty($cssFiles)) $cssFiles = $this->cssFiles;
-		Template::header($cssFiles, $this->title);
+		Template::header($cssFiles, $title);
 		?>
 		<body>
 		<div id="wrapper">
@@ -71,6 +72,7 @@ class Theme {
 		</div>
 		<?php Template::jsFooter(); ?>
 		</body>
+		</html>
 		<?php
 	}
 

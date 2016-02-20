@@ -1,6 +1,8 @@
 
 // External
 @import "../../../../../css/less/bootstrap/bootstrap.less";
+@fa-font-path: "../../../../fonts";
+// Ne pas oublier de virer @fa-font-path dans font-awesome/variables.less
 @import "../../../../../css/less/font-awesome/font-awesome.less";
 
 
@@ -10,23 +12,9 @@
 body {
   padding-top: 60px;
   background-image: url("Content/Themes/Assostdoul/img/bg.png");
+  position: relative;
 }
-#carousel{
-  display: none;
-}
-.carousel .item{
-  height: 290px;
-  overflow: hidden;
-}
-#carousel-loading{
-  padding-top: 200px;
-  font-size: 3em;
-}
-.carousel .item img{
-  max-height: 100%;
-  max-width: 100%;
-  margin: auto;
-}
+
 .space-top{
   margin-top: 40px;
 }
@@ -41,18 +29,10 @@ body {
   width: 100%;
 
 }
-.section-image{
-  border: 2px solid @link-color;
-}
-.sections{
-  padding: 20px;
-}
 #sections h2{
   padding-left: 20px;
 }
-.news-wrap{
 
-}
 .news{
   line-height: 26px;
 }
@@ -61,11 +41,8 @@ body {
   background-color: @link-color;
   color: @gray-darker;
   padding: 4px 10px;
-  width: 4.9em;
   text-align: center;
-  height: 100%;
   vertical-align: top;
-  float: left;
 }
 .news-title{
   //max-width: 50em;
@@ -132,18 +109,12 @@ body {
   padding: 4px;
 }
 
-#pres-asso{
-  margin: 40px;
-  border: 2px solid @link-color;
-  border-radius: @border-radius-base;
-  margin-left: 20px;
-}
 
 .required{
   color: Red;
 }
 
-#map-canvas img{
+.img-rounded{
   border: 2px solid @link-color;
 }
 
@@ -169,6 +140,9 @@ body {
 
 .navbar-inner{
   margin-left: 0px;
+}
+.navbar-brand{
+  height: 60px;
 }
 
 /* For Responsive design */

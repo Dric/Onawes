@@ -33,8 +33,9 @@ class Menu {
 	 * @return string
 	 */
 	public function toHTML(){
+		$CSSClasses = $this->getCSSClasses(true);
 		?>
-		<ul id="<?php echo $this->id; ?>" class="<?php echo $this->getCSSClasses(true); ?>">
+		<ul <?php if (!empty($this->id)) echo 'id="'.$this->id.'"'; ?> <?php if (!empty($CSSClasses)) echo 'class="'.$CSSClasses.'"'; ?>>
 			<?php
 			foreach ($this->itemsOrder as $itemId => $position){
 				$this->items[$itemId]->toHTML();

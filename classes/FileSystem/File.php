@@ -14,10 +14,12 @@ use Alerts\Alert;
  *
  * @package FileSystem
  *
- * @property-read string  $name       File name without extension
- * @property-read string  $baseName   File name with extension
- * @property-read string  $fullName   File name with complete path
- * @property-read string  $extension  File extension
+ * @property-read string  $name           File name without extension
+ * @property-read string  $baseName       File name with extension
+ * @property-read string  $fullName       File name with complete path
+ * @property-read string  $extension      File extension
+ * @property-read string  $dateCreated    File date creation
+ * @property-read string  $parentFolder   Parent directory
  *
  */
 class File {
@@ -38,6 +40,7 @@ class File {
 	protected $groupOwner = null;
 	protected $linuxHidden = false;
 	protected $parentFolder = null;
+	protected $content = null;
 
 	/**
 	 * Construit un objet fichier
@@ -106,6 +109,9 @@ class File {
 				if ((!empty($filters) and in_array('groupOwner', $filters)) or empty($filters)){
 					$this->groupOwner = posix_getgrgid(@filegroup($this->fullName))['name'];
 				}
+			}
+			if (!empty($filters) and in_array('content', $filters)){
+				$this->content = @file_get_contents($this->fullName);
 			}
 		}else{
 			new Alert('debug', '<code>File Constructor</code> : le fichier <code>'.$this->fullName.'</code> n\'existe pas !');
@@ -348,4 +354,12 @@ class File {
 		if ($this->linuxHidden) $class = 'text-muted';
 		return $class;
 	}
-} 
+
+	/**
+	 * @return null|string
+	 */
+	public function getContent() {
+		return $this->content;
+	}
+
+}

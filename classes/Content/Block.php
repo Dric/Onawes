@@ -102,7 +102,7 @@ class Block {
 	 * @return string
 	 */
 	public function getFullId() {
-		return $this->parentId.'-'.$this->id;
+		return $this->parentId.'__'.$this->id;
 	}
 
 	/**
@@ -127,7 +127,7 @@ class Block {
 	}
 
 	/**
-	 * @param $CSSClass CSS class to add - ignored if already present
+	 * @param string $CSSClass CSS class to add - ignored if already present
 	 *
 	 */
 	public function addCSSClass($CSSClass) {
@@ -249,14 +249,16 @@ class Block {
 	}
 
 	public function getExcerpt(){
-		?>
-		<h4><?php if (!$this->isUnsaved) { ?>Block <code><?php echo $this->getTitle(); ?></code><?php } else { ?>Ajouter un nouveau block<?php }?></h4>
-		<?php
-		if (!$this->isUnsaved) { ?>
-			<p>ID : <code><?php echo $this->getFullId(); ?></code></p>
-			<p>Type : <code><?php echo $this->getType(); ?></code></p>
+		if (!$this->isUnsaved) {
+			?>
+			<!--<p>ID : <code><?php echo $this->getFullId(); ?></code></p>-->
+			<div class="pull-right"><span class="label label-default"><?php echo $this->getType(); ?></span></div>
 			<?php
 		}
+		?>
+		<h4><?php if (!$this->isUnsaved) { ?>Bloc <code><?php echo $this->getTitle(); ?></code><?php } else { ?>Ajouter un nouveau block<?php }?></h4>
+		<?php
+
 	}
 
 	public function getFormCustomFields(){

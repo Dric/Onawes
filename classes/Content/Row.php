@@ -10,12 +10,12 @@ namespace Content;
 
 
 use Alerts\Alert;
-use Content\Blocks\HTMLBlock;
+use Content\Blocks\TextBlock;
 
 class Row {
 
 	/**
-	 * @var HTMLBlock[]
+	 * @var TextBlock[]
 	 */
 	protected $blocks = array();
 
@@ -51,6 +51,8 @@ class Row {
 	 * @var string[]
 	 */
 	protected $CSSClasses = array();
+	/** @var bool  */
+	protected $isMenuItem = false;
 
 	/**
 	 * @var string
@@ -90,6 +92,7 @@ class Row {
 			'id'          => $this->id,
 			'tag'         => $this->tag,
 			'CSSClasses'  => $this->CSSClasses,
+			'isMenuItem'  => $this->isMenuItem
 		);
 		foreach ($this->blocksOrder as $blockId => $position){
 			$array['blocks'][$blockId] = $this->blocks[$blockId]->toArray();
@@ -109,7 +112,7 @@ class Row {
 	 */
 	public function setId($id) {
 		$this->id = $id;
-		$this->title = $id;
+		if (empty($this->title)) $this->title = $id;
 	}
 
 	/**
@@ -123,7 +126,7 @@ class Row {
 	}
 
 	/**
-	 * @param $CSSClass CSS class to add - ignored if already present
+	 * @param string $CSSClass CSS class to add - ignored if already present
 	 *
 	 */
 	public function addCSSClass($CSSClass) {
@@ -145,7 +148,7 @@ class Row {
 	}
 
 	/**
-	 * @return HTMLBlock[]
+	 * @return TextBlock[]
 	 */
 	public function getBlocks() {
 		$ret = array();
@@ -284,5 +287,19 @@ class Row {
 	 */
 	public function isUnsaved() {
 		return $this->isUnsaved;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isIsMenuItem() {
+		return $this->isMenuItem;
+	}
+
+	/**
+	 * @param boolean $isMenuItem
+	 */
+	public function setIsMenuItem($isMenuItem) {
+		$this->isMenuItem = $isMenuItem;
 	}
 }

@@ -102,18 +102,29 @@ class Get {
 	/**
 	 * retourne une chaîne résumée à x caractères
 	 *
+	 * @from http://stackoverflow.com/a/79986/1749967
 	 * @param string $text
 	 * @param int $charNumber
 	 *
 	 * @return string
 	 */
 	public static function excerpt($text, $charNumber){
-		if (strlen($text) > $charNumber) {
-			$text = substr($text, 0, $charNumber);
-			$text = substr($text,0,strrpos($text,' '));
-			$etc = '...';
-			$text = $text.$etc;
+		$parts = preg_split('/([\s\n\r]+)/', $text, null, PREG_SPLIT_DELIM_CAPTURE);
+		$partsCount = count($parts);
+		$addFinal = false;
+		$length = 0;
+		$lastPart = 0;
+		for (; $lastPart < $partsCount; ++$lastPart) {
+			$length += strlen($parts[$lastPart]);
+			if ($length > ($charNumber - 6)) {
+				$addFinal = true;
+				break;
+			}
 		}
-		return $text;
+		$ret = implode(array_slice($parts, 0, $lastPart));
+		if ($addFinal){
+			$ret .= ' [...]';
+		}
+		return $ret;
 	}
 }
