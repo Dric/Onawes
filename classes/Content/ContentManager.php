@@ -1164,6 +1164,8 @@ class ContentManager {
 
 	public function ajaxShowGallery($mediaDir = null, $allowedExt = array()){
 		global $settings;
+		//TODO : Créer un paramètre pour les extensions autorisées
+		$allowedExt = (!empty($allowedExt)) ? $allowedExt : array('jpg', 'png', 'gif', 'pdf', 'xls', 'xlsx', 'doc', 'docx') ;
 		$mediaDir = (!empty($mediaDir)) ? $mediaDir : $this->contentDir.DIRECTORY_SEPARATOR.'Files';
 		$mediaURL = str_replace($this->contentDir.DIRECTORY_SEPARATOR, $settings->absoluteURL.'/'.$settings->contentDir.'/', $mediaDir);
 		$fs = new Fs($mediaDir);
