@@ -3,6 +3,16 @@ Onawes!
 
 (Oh No, Another Website Edit System !)
 
+Onawes allow to generate one-page websites, based on Twitter Bootstrap 3.
+
+It supports theming and custom blocks.
+
+The structure is organized in pages, which contains rows, which contains blocks.
+
+## Install
+
+Just access your website, the installer will run automatically.
+
 ## URL Rewriting
 
 URL Rewriting : <https://ciarand.me/posts/refactoring-php-part-2/>
@@ -19,6 +29,14 @@ If Onawes is installed on root directory or in subdirectory not named 'onawes', 
 
 ## Components used
 
-* Pagedown-bootstrap : https://github.com/izambasiron/pagedown-bootstrap
+- [Twitter Bootstrap](http://getbootstrap.com) 3.3.1.
+- [Font Awesome](http://fortawesome.github.io/Font-Awesome/) 4.5.0 : Replace `Glyphicon` from Bootstrap.
+- [jQuery](http://jquery.com) 2.2.0.
+- [Pagedown Bootstrap](http://kevin.oconnor.mp/pagedown-bootstrap) : Nearly-wysiwyg Markdown editor.
+- [noty](http://ned.im/noty) - A jQuery Notification Plugin.
+- [bootstrap-fileinput ](http://plugins.krajee.com/file-input) 4.3.0 : An enhanced HTML 5 file input for Bootstrap 3.x.
+- [eqHeight](http://jsliang.com/eqHeight.coffee/) 1.3.5 : jQuery plugin that stretches fluid columns to equal height.
+- [bootstrap-slider](https://github.com/seiyria/bootstrap-slider) 6.0.17 : Sliders for Bootstrap
 
-En cas de mise à jour, penser à remettre les classes CSS "img-responsive img-rounded" sur les images (faire une recherche sur `<img` et rajouter la classe partout)
+Icon from <https://freeiconshop.com/icon/edit-document-icon-flat/>
+

@@ -13,13 +13,12 @@
  * @property-read string  $authMode       Mode d'authentification
  * @property-read string  $authPwd        Mot de passe
  * @property-read string  $authCookieName Nom du cookie utilisé
- * @property-read string  $authSaltKey    Clé de salage
+ * @property-read string  $cookieKey      Clé du cookie
+ * @property-read string  $authSaltKey    Clé de salage du mot de passe
  *
  * @property-read string  $absolutePath   Chemin absolu du script
  * @property-read string  $absoluteURL    URL du script
  * @property-read string  $editURL        URL de la partie admin
- *
- * @property-read string  $scriptTitle    Titre de la page
  *
  * @property-read bool    $debug          Mode debug
  *
@@ -31,9 +30,9 @@
  * <?php
 
 		class LocalSettings extends Settings {
-		protected $authPwd    = '';
-
-	}
+			protected $authPwd    = '';
+      protected $prettyURL  = true;
+		}
  */
 class Settings {
 

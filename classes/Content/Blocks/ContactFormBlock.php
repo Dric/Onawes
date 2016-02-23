@@ -157,7 +157,8 @@ class ContactFormBlock extends Block{
 		if (isset($_REQUEST['email_SendTo']) and isset($_REQUEST['email_SenderName']) and isset($_REQUEST['email_SenderEmail']) and isset($_REQUEST['email_Message'])){
 			$spamField = (isset($_REQUEST['email_Subject'])) ? $_REQUEST['email_Subject'] : null;
 			$ret = $this->sendEmail($_REQUEST['email_SendTo'], $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], $spamField);
-			if ($ret and !empty($this->copyTo)){
+			// If the main recipient is the same as the copyTo recipient, we don't send the same email two times to same address
+			if ($ret and !empty($this->copyTo) and (!isset($this->copyTo[$_REQUEST['email_SendTo']]))){
 				$ret = $this->sendEmail($this->copyTo, $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], null, true);
 			}
 		}elseif(isset($_REQUEST['email_SendTo'])){
@@ -173,7 +174,7 @@ class ContactFormBlock extends Block{
 						<?php
 					}
 					foreach ($this->sendTo as $label=>$email){
-						echo '<option value="'.$label.'">'.$label.'</option>';
+						echo '<option value="'.htmlentities($label).'">'.$label.'</option>';
 					}
 					?>
 				</select>
@@ -204,7 +205,7 @@ class ContactFormBlock extends Block{
 						<li>Vérifiez que votre français est compréhensible et ne contrevient pas trop aux normes orthographiques et grammaticales en vigueur.</li>
 						<li>Si vous souhaitez utiliser ce formulaire pour envoyer du spam, abstenez-vous. Vous perdez votre temps et le nôtre.</li>
 						<li>Les astérisques signalent que le champ est obligatoire pour que votre message soit envoyé.</li>
-						<li>Nous essaierons de vous répondre dans les plus brefs délais, mais n'hésitez pas à relancer si vous ne recevez pas de réponses au bout d'une semaine.</li>
+						<li>Nous essaierons de vous répondre dans les plus brefs délais, mais n'hésitez pas à nous relancer si vous ne recevez pas de réponses au bout d'une semaine.</li>
 					</ul>
 				</div>
 			</div>
@@ -223,7 +224,7 @@ class ContactFormBlock extends Block{
 			foreach ($this->sendTo as $label => $email){
 				$ret .= $label.'##'.$email.',';
 			}
-			return $ret;
+			return rtrim($ret, ',');
 		}else{
 			return $this->sendTo;
 		}
@@ -239,7 +240,7 @@ class ContactFormBlock extends Block{
 			$sendTo = array();
 			foreach($arr as $contact){
 				$contactArray = explode('##', $contact);
-				$sendTo[$contactArray[0]] = $contactArray[1];
+				if (!empty($contactArray[0]) or !empty($contactArray[1]))	$sendTo[$contactArray[0]] = $contactArray[1];
 			}
 		}
 		$this->sendTo = $sendTo;
@@ -254,7 +255,7 @@ class ContactFormBlock extends Block{
 			foreach ($this->copyTo as $label => $email){
 				$ret .= $label.'##'.$email.',';
 			}
-			return $ret;
+			return rtrim($ret, ',');
 		}else{
 			return $this->copyTo;
 		}
@@ -271,7 +272,7 @@ class ContactFormBlock extends Block{
 				$copyTo = array();
 				foreach($arr as $contact){
 					$contactArray = explode('##', $contact);
-					$copyTo[$contactArray[0]] = $contactArray[1];
+					if (!empty($contactArray[0]) or !empty($contactArray[1])) $copyTo[$contactArray[0]] = $contactArray[1];
 				}
 			}
 			$this->copyTo = $copyTo;

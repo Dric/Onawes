@@ -40,23 +40,13 @@ class Security {
 		global $settings;
 		if (isset($_COOKIE[$settings->authCookieName])){
 			$cookie = $_COOKIE[$settings->authCookieName];
-			if ($cookie == $settings->authSaltKey) return $cookie;
+			if ($cookie == $settings->cookieKey) return $cookie;
 			// If bad salt key, we delete cookie too
 			self::deleteCookie();
 		}
 		return false;
 	}
 
-	/**
-	 * Mélange le mot de passe avec une clé de salage pour ne pas le mettre en clair dans la base de données
-	 * @param string $pwd Mot de passe
-	 *
-	 * @return string
-	 */
-	static function saltPwd($pwd){
-		global $settings;
-		return sha1($pwd.$settings->authSaltKey);
-	}
 
 	/**
 	 * Valide la connexion d'un utilisateur
@@ -64,20 +54,32 @@ class Security {
 	 */
 	static function tryLogin(){
 		global $settings;
+		// If there is too many tries, we wait a little before the user or the robot can try again...
+		if (isset($_SESSION['logonTries']) and $_SESSION['logonTries'] > 3){
+			sleep($_SESSION['logonTries']);
+		}
 		if (!isset($_REQUEST['loginPwd']) or empty($_REQUEST['loginPwd'])) {
 			new Alert('error', 'Le mot de passe est vide !');
 			return false;
 		}
 		$loginPwd = htmlspecialchars($_REQUEST['loginPwd']);
 		$stayConnected = (isset($_REQUEST['stayConnected'])) ? true : false;
-		if (!empty($loginPwd) and  $loginPwd == $settings->authPwd){
+		if (!empty($loginPwd) and  hash('SHA512', $loginPwd.$settings->authSaltKey) == $settings->authPwd){
 			$cookieDuration = ($stayConnected) ? (time()+(90*24*3600)) : 0;
-			$ret = setcookie($settings->authCookieName, $settings->authSaltKey, $cookieDuration, '/', '', FALSE, TRUE);
+			$ret = setcookie($settings->authCookieName, $settings->cookieKey, $cookieDuration, '/', '', FALSE, TRUE);
 			if (!$ret){
 				new Alert('error', 'Impossible de créer le cookie d\'authentification !');
 				return false;
 			}
+			unset($_SESSION['logonTries']);
 			header('location: '.Template::createURL(array('edit' => true)));
+			exit();
+		}
+		// Bad password
+		if (!isset($_SESSION['logonTries'])){
+			$_SESSION['logonTries'] = 1;
+		}else{
+			$_SESSION['logonTries']++;
 		}
 		new Alert('error', 'Le mot de passe est incorrect !');
 		return false;
@@ -98,11 +100,11 @@ class Security {
 		<body>
 			<div id="">
 				<!-- Page content -->
-				<div id="page-content-wrapper" class="login-wrap container">
+				<div class="login-wrap container">
 					<!-- Si javascript n'est pas activé, on prévient l'utilisateur que ça va merder... -->
 					<noscript>
 						<div class="alert alert-danger">
-							<p class="text-center">Ce site fonctionne sans Javascript, mais vous devriez quand même l'activer pour un plus grand confort d'utilisation.</p>
+							<p class="text-center">Ce site ne fonctionne probablement pas sans Javascript, vous devriez l'activer.</p>
 						</div>
 					</noscript>
 					<div class="row">

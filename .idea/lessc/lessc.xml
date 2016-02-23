@@ -97,6 +97,25 @@
             </LessProfile>
           </value>
         </entry>
+        <entry key="5">
+          <value>
+            <LessProfile>
+              <option name="compileAutomatically" value="false" />
+              <option name="compressOutput" value="true" />
+              <option name="cssDirectories">
+                <list>
+                  <CssDirectory>
+                    <option name="path" value="U:\Onawes\classes\Content\Themes\Edit" />
+                  </CssDirectory>
+                </list>
+              </option>
+              <option name="id" value="5" />
+              <option name="includePattern" value="edit.less" />
+              <option name="lessDirPath" value="U:\Onawes\classes\Content\Themes\Edit\less" />
+              <option name="name" value="edit-work" />
+            </LessProfile>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

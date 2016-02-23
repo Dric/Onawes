@@ -73,15 +73,21 @@ class NewsBlock extends Block{
 		$newsFiles = array();
 		$allowedCats = (empty($this->allowedCats)) ? $Content->getNewsCategories() : $this->allowedCats ;
 		foreach ($allowedCats as $cat){
-			$newsFiles = array_merge($fs->getFilesInDir(\Sanitize::sanitizeFilename($cat), 'json', array('extension', 'dateCreated', 'parentFolder'), true), $newsFiles);
+			$files = $fs->getFilesInDir(\Sanitize::sanitizeFilename($cat), 'json', array('extension', 'dateCreated', 'parentFolder'), true);
+			if (!empty($files))	$newsFiles = array_merge($files, $newsFiles);
 		}
-		$newsFiles = \Sanitize::sortObjectList($newsFiles, array('dateCreated'), 'DESC');
-		$i = 0;
-		while ($i < $this->itemsToDisplay and isset($newsFiles[$i])){
-			$file = $newsFiles[$i];
-			$newsItem = new NewsItem(trim(str_replace($Content->getContentDir().DIRECTORY_SEPARATOR.'News', '', $file->parentFolder), DIRECTORY_SEPARATOR), $file->baseName);
-			$newsItem->display();
-			$i++;
+
+		if (!empty($newsFiles)) {
+			$newsFiles = \Sanitize::sortObjectList($newsFiles, array('dateCreated'), 'DESC');
+			$i = 0;
+			while ($i < $this->itemsToDisplay and isset($newsFiles[$i])){
+				$file = $newsFiles[$i];
+				$newsItem = new NewsItem(trim(str_replace($Content->getContentDir().DIRECTORY_SEPARATOR.'News', '', $file->parentFolder), DIRECTORY_SEPARATOR), $file->baseName);
+				$newsItem->display();
+				$i++;
+			}
+		}else{
+			echo '<p>Pas d\'actualités à afficher...</p>';
 		}
 	}
 

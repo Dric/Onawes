@@ -13,7 +13,7 @@ class Template {
 	 * Tableau de lignes html à inclure dans la partie `<head>` de la page
 	 * @var string[]
 	 */
-	protected static $header = array();
+	protected static $HTMLHeader = array();
 	/**
 	 * Tableau de lignes html à inclure dans les chargement de scripts javascript dans la partie `<head>` de la page
 	 *
@@ -67,7 +67,7 @@ class Template {
 			<link href="<?php echo $settings->absoluteURL; ?>/css/animate.css" rel="stylesheet">
 			<?php
 			// On ajoute le contenu de $header
-			foreach (self::$header as $headerLine){
+			foreach (self::$HTMLHeader as $headerLine){
 				echo $headerLine.PHP_EOL;
 			}
 			?>
@@ -102,6 +102,13 @@ class Template {
 		foreach (self::$jsHeader as $headerLine){
 			echo $headerLine.PHP_EOL;
 		}
+	}
+
+	/**
+	 * Affiche les scripts en haut de page
+	 */
+	public static function HTMLHeader(){
+		return self::$HTMLHeader;
 	}
 
 	/**
@@ -152,7 +159,7 @@ class Template {
 	 * @param string $header
 	 */
 	public static function addHTMLToHeader($header) {
-		self::$header[] = $header;
+		self::$HTMLHeader[] = $header;
 	}
 
 	/**

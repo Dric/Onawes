@@ -291,8 +291,6 @@ class ContentManager {
 			}
 		}
 		$newsFiles = \Sanitize::sortObjectList($newsFiles, array('dateCreated'), 'DESC');
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
 		$this->currentTheme->toHTMLHeader();
 
 		if (isset($_REQUEST['item'])){
@@ -311,25 +309,21 @@ class ContentManager {
 		?>
 		<h2><?php echo $titleH2; ?></h2>
 		<div class="row">
-			<div class="col-md-12">
+			<div class="col-md-6">
 				<form class="" method="post">
 					<div class="form-group">
 						<label class="control-label" for="fileName">Titre</label>
-						<div class="input-group">
-							<input type="text" class="form-control input-sm" placeholder="Titre" name="newsItem_title" <?php if ($editMode) echo 'value="'.$itemEdit->getTitle().'"' ?> required>
-						</div><!-- /input-group -->
+						<input type="text" class="form-control input-sm" placeholder="Titre" name="newsItem_title" <?php if ($editMode) echo 'value="'.$itemEdit->getTitle().'"' ?> required>
 					</div>
 					<div class="form-group">
 						<label class="control-label" for="newsItem_category">Catégorie</label>
-						<div class="input-group">
-							<select class="form-control" id="newsItem_category" name="newsItem_category" <?php if ($editMode) echo 'disabled'; ?>>
-								<?php
-								foreach ($Content->getNewsCategories() as $cat){
-									?><option <?php if ($editMode and strtolower($category) == \Sanitize::sanitizeFilename($cat)) echo 'selected'; ?>><?php echo $cat; ?></option><?php
-								}
-								?>
-							</select>
-						</div>
+						<select class="form-control" id="newsItem_category" name="newsItem_category" <?php if ($editMode) echo 'disabled'; ?>>
+							<?php
+							foreach ($Content->getNewsCategories() as $cat){
+								?><option <?php if ($editMode and strtolower($category) == \Sanitize::sanitizeFilename($cat)) echo 'selected'; ?>><?php echo $cat; ?></option><?php
+							}
+							?>
+						</select>
 					</div>
 					<div class="form-group">
 						<label for="newsItem_content">Contenu</label>
@@ -395,15 +389,12 @@ class ContentManager {
 			</div>
 		</div><!-- end modal -->
 		<?php
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
-		//\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
 		$this->currentTheme->toHTMLFooter();
 	}
 
 	public function listPages(){
 		global $settings;
+		$mainPage = (isset($this->siteSettings['mainPage'])) ? $this->siteSettings['mainPage'] : null;
 		$fs = new Fs($this->contentDir);
 		$JSONPages = $fs->getFilesInDir(null, null, array('extension'), true);
 		$this->currentTheme->toHTMLHeader();
@@ -440,7 +431,7 @@ class ContentManager {
 						?>
 						<tr <?php if ($hasBackup and !$hasMainFile) { echo 'class="warning text-muted"'; }?>>
 							<td>
-								<?php if ($hasBackup and !$hasMainFile) { ?><del class="tooltip-bottom" title="Ce fichier a été supprimé, mais il reste le backup"><?php } ?><?php echo $fileName; ?><?php if ($hasBackup and !$hasMainFile) { ?></del><?php } ?>
+								<?php if ($hasBackup and !$hasMainFile) { ?><del class="tooltip-bottom" title="Ce fichier a été supprimé, mais il reste le backup"><?php } ?><?php echo $fileName; ?><?php if ($mainPage == $fileName) { echo ' <i class="fa fa-asterisk text-success tooltip-right" title="Page principale"></i>';} ?><?php if ($hasBackup and !$hasMainFile) { ?></del><?php } ?>
 							</td>
 							<td>
 								<?php
@@ -513,12 +504,10 @@ class ContentManager {
 				$refRow = \Sanitize::SanitizeForDb($_REQUEST['refRow'], false);
 			}
 		}
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/pagedown-bootstrap/css/jquery.pagedown-bootstrap.css" rel="stylesheet">');
-		\Template::addCSSToHeader('<link href="'.$settings->absoluteURL.'/js/bootstrap-fileinput/css/fileinput.min.css" rel="stylesheet">');
-		$this->currentTheme->toHTMLHeader();
-		?><h2>Edition de la page <code><?php echo $page->getTitle(); ?></code></h2><?php
 
+		$this->currentTheme->toHTMLHeader();
 		?>
+		<h2>Edition de la page <code><?php echo $page->getTitle(); ?></code></h2>
 		<div class="row">
 			<div class="col-md-12" id="page_<?php echo $page->getFileName(); ?>">
 				<div class="panel panel-default">
@@ -590,10 +579,6 @@ class ContentManager {
 			</div>
 		</div><!-- end modal -->
 		<?php
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/pagedown-bootstrap/js/jquery.pagedown-bootstrap.combined.min.js"></script>');
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput.min.js"></script>');
-		\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/bootstrap-fileinput/js/fileinput_locale_fr.js"></script>');
-		//\Template::addJsToFooter('<script type="text/javascript" src="'.$settings->absoluteURL.'/js/editPage.js"></script>');
 		$this->currentTheme->toHTMLFooter();
 	}
 
@@ -671,7 +656,8 @@ class ContentManager {
 							</div>
 							<?php } ?>
 						</form>
-						<div class="row edit-row">
+						<p><a id="show_row_<?php echo $row->getId(); ?>_blocks" class="btn btn-default btn-xs" role="button" data-toggle="collapse" href="#row_<?php echo $row->getId(); ?>_blocks" aria-expanded="false" aria-controls="showBlocks">Voir les blocs</a></p>
+						<div class="row edit-row collapse row_blocks_collapsed" id="row_<?php echo $row->getId(); ?>_blocks">
 							<?php
 							$nbBlocks = 0;
 							if (empty($row->getBlocks()) and !$row->isUnsaved()) {
@@ -753,7 +739,7 @@ class ContentManager {
 				}else{
 				?>
 				<button class="btn btn-primary tooltip-top block-edit-button" title="Modifier" type="button" data-toggle="collapse" data-block-id="<?php echo $block->getFullId(); ?>" data-target="#<?php echo $block->getFullId(); ?>_editPanel" aria-expanded="false" aria-controls="CollapseEditPanel">
-					<span class="fa fa-edit"></span>
+					Modifier
 				</button>
 				<?php if (!$block->isUnsaved()){ ?>
 					<div class="btn-group pull-right" role="group" aria-label="Actions">
@@ -804,25 +790,32 @@ class ContentManager {
 							</select>
 						</div>
 					</div>
-					Tailles :
 					<?php
-					foreach ($block->getWidths() as $width => $size){
-						?>
-						<div class="form-group form-group-sm">
-							<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>"><?php echo $this->widthsLabels[$width]; ?></label>
-							<div class="col-sm-3">
-								<select class="form-control" id="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>" name="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>">
-									<?php
-									for ($i = 0; $i <= 12 ;$i++){
-										?><option <?php if ($size == $i) echo 'selected'; ?>><?php echo $i; ?></option><?php
-									}
-									?>
-								</select>
-							</div>
-						</div>
-						<?php
-					}
+					$generalSize = $block->getWidths()['md'];
 					?>
+					<div class="form-group form-group-sm">
+						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_width_md">Largeur du bloc</label>
+						<div class="col-sm-6">
+							<input type="number" class="form-control slider" id="block_<?php echo $block->getFullId(); ?>_width_md" name="block_<?php echo $block->getFullId(); ?>_width_md" step="1" value="<?php echo $generalSize; ?>" min="0" max="12" data-slider-min="0" data-slider-max="12" data-slider-step="1" data-slider-value="<?php echo $generalSize; ?>">&nbsp;
+							&nbsp;<a class="btn btn-default btn-xs" role="button" data-toggle="collapse" href="#block_<?php echo $block->getFullId(); ?>_width_advanced" aria-expanded="false" aria-controls="advancedWidthsSettings">Avancé</a>
+						</div>
+					</div>
+					<div class="collapse" id="block_<?php echo $block->getFullId(); ?>_width_advanced">
+						<?php
+						foreach ($block->getWidths() as $width => $size){
+							if ($width != 'md'){
+								?>
+								<div class="form-group form-group-sm">
+									<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>"><?php echo $this->widthsLabels[$width]; ?></label>
+									<div class="col-sm-6">
+										<input type="number" class="form-control slider" id="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>" name="block_<?php echo $block->getFullId(); ?>_width_<?php echo $width; ?>" step="1" value="<?php echo $size; ?>" min="0" max="12" data-slider-min="0" data-slider-max="12" data-slider-step="1" data-slider-value="<?php echo $size; ?>">
+									</div>
+								</div>
+								<?php
+							}
+						}
+						?>
+					</div>
 					<div class="form-group form-group-sm">
 						<label class="col-sm-5 control-label" for="block_<?php echo $block->getFullId(); ?>_titleLevel">Taille du titre</label>
 						<div class="col-sm-6">

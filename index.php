@@ -20,10 +20,19 @@ $args = array(
 );
 
 // Loading settings...
-if ('classes/LocalSettings.php'){
+if (file_exists(realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'LocalSettings.php')){
+	/** @var Settings $settings */
 	$settings = new LocalSettings($args);
 }else{
+	// This is a new install...
+	if (isset($_REQUEST['createLocalSettings'])){
+		if (\Components\Installer::createLocalSettings() === true){
+			header('location: '.$args['absoluteURL']);
+			exit();
+		};
+	}
 	$settings = new Settings($args);
+	\Components\Installer::doSetup();
 }
 
 // Defaulting vars...
@@ -68,14 +77,13 @@ if ($settings->prettyURL) {
 	}
 }
 
-
 session_start();
 
 // Populating stuff...
 $Content = new \Content\ContentManager();
 
 // Loading Theme...
-$themePHPClass = 'Content\\Themes\\'.$Content->getSiteSettings()['theme'];
+$themePHPClass = (isset($Content->getSiteSettings()['theme'])) ? 'Content\\Themes\\'.$Content->getSiteSettings()['theme'] : 'Content\\Themes\\Home';
 $theme = new $themePHPClass();
 
 // Let's process Login/logoff...
@@ -150,6 +158,9 @@ if ($adminMode){
 	}
 }else{
 	// Displaying front pages...
+	if (strpos($requestedPage, '.json') === false){
+		$requestedPage .= '.json';
+	}
 	$page = $Content->addPageFromJSON($requestedPage);
 	if ($page !== false)	{
 		$page->toHTML($theme);

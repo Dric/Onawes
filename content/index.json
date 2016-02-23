@@ -1,13 +1,17 @@
 {
     "title": "Association St Doul",
-    "CSSClasses": [],
+    "CSSClasses": [
+
+    ],
     "theme": null,
     "rows": {
         "Actus": {
             "title": "Actualités",
             "id": "Actus",
             "tag": "div",
-            "CSSClasses": [],
+            "CSSClasses": [
+
+            ],
             "isMenuItem": true,
             "blocks": {
                 "Articles": {
@@ -16,7 +20,9 @@
                     "titleLevel": 2,
                     "id": "Articles",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -25,7 +31,9 @@
                     },
                     "properties": {
                         "itemsToDisplay": "10",
-                        "allowedCats": []
+                        "allowedCats": [
+
+                        ]
                     }
                 },
                 "Présentation": {
@@ -34,7 +42,9 @@
                     "titleLevel": 2,
                     "id": "Présentation",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -51,7 +61,9 @@
             "title": "Sections",
             "id": "Sections",
             "tag": "div",
-            "CSSClasses": [],
+            "CSSClasses": [
+
+            ],
             "isMenuItem": true,
             "blocks": {
                 "Explain": {
@@ -60,7 +72,9 @@
                     "titleLevel": 1,
                     "id": "Explain",
                     "tag": "div",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -77,7 +91,9 @@
             "title": "Sections-logos",
             "id": "Sections-logos",
             "tag": "div",
-            "CSSClasses": [],
+            "CSSClasses": [
+
+            ],
             "isMenuItem": null,
             "blocks": {
                 "Volley": {
@@ -86,7 +102,9 @@
                     "titleLevel": 2,
                     "id": "Volley",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -103,7 +121,9 @@
                     "titleLevel": 2,
                     "id": "FutSal",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -120,7 +140,9 @@
                     "titleLevel": 2,
                     "id": "Badminton",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -137,7 +159,9 @@
             "title": "Gymnase",
             "id": "Gymnase",
             "tag": "div",
-            "CSSClasses": [],
+            "CSSClasses": [
+
+            ],
             "isMenuItem": true,
             "blocks": {
                 "Adresse": {
@@ -146,7 +170,9 @@
                     "titleLevel": 2,
                     "id": "Adresse",
                     "tag": "div",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -169,7 +195,9 @@
                     "titleLevel": 2,
                     "id": "Plan",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -186,7 +214,9 @@
             "title": "Contact",
             "id": "Contact",
             "tag": "div",
-            "CSSClasses": [],
+            "CSSClasses": [
+
+            ],
             "isMenuItem": true,
             "blocks": {
                 "Contact": {
@@ -195,7 +225,9 @@
                     "titleLevel": 2,
                     "id": "Contact",
                     "tag": "div",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -204,11 +236,11 @@
                     },
                     "properties": {
                         "sendTo": {
-                            "Le président": "association.sportive.st.doul@hotmail.fr",
+                            "Le Président": "association.sportive.st.doul@hotmail.fr",
                             "Le responsable du site web": "cedric@driczone.net"
                         },
                         "copyTo": {
-                            "association.sportive.st.doul@hotmail.fr": null
+                            "Le Président": "association.sportive.st.doul@hotmail.fr"
                         },
                         "antiSpam": "on"
                     }
@@ -219,7 +251,9 @@
                     "titleLevel": 2,
                     "id": "Adresse_Club",
                     "tag": "div",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,
@@ -242,7 +276,9 @@
                     "titleLevel": 2,
                     "id": "Liens",
                     "tag": "section",
-                    "CSSClasses": [],
+                    "CSSClasses": [
+
+                    ],
                     "widths": {
                         "xs": 0,
                         "sm": 0,

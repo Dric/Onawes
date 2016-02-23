@@ -22,18 +22,19 @@ $(".block-edit-button").click(function(e) {
  * Created by cedric.gallard on 29/01/2016.
  */
 $('textarea').pagedownBootstrap({
-	'editor_hooks': [{
-		'event': 'insertImageDialog', 'callback': function (callback) {
+	'editor_hooks': [
+		{
+			'event': 'insertImageDialog', 'callback': function (callback) {
 			var $modal = $('#mediaManagerModal');
-			$modal.on("show.bs.modal", function(e) {
+			$modal.on("show.bs.modal", function (e) {
 				var libraryUrl = $(this).data('ajaxlibrary');
-				$(this).find(".modal-body").load($(this).data('ajaxtoload'), function(){
-					$('#upload-media').fileinput().on('fileloaded', function(event, file, previewId, index, reader) {
+				$(this).find(".modal-body").load($(this).data('ajaxtoload'), function () {
+					$('#upload-media').fileinput().on('fileloaded', function (event, file, previewId, index, reader) {
 						$('.fileinput-upload-button').hide();
-					}).on('fileuploaded', function(event, data, previewId, index) {
+					}).on('fileuploaded', function (event, data, previewId, index) {
 						/*var form = data.form, files = data.files, extra = data.extra,
 						 response = data.response, reader = data.reader;*/
-						$('#library').load(libraryUrl, function(){
+						$('#library').load(libraryUrl, function () {
 							mediaActions($modal, callback);
 						});
 					});
@@ -45,12 +46,22 @@ $('textarea').pagedownBootstrap({
 			//callback("http://icanhascheezburger.files.wordpress.com/2007/06/schrodingers-lolcat1.jpg");
 			return true; // tell the editor that we'll take care of getting the image url
 		}
-	}]
+		}
+	]
 });
 
-//Same height for blocks in a row
-$('.edit-row').eqHeight('.edit-form');
 
+
+// Show sliders instead of number inputs
+$('.slider').slider();
+
+$('.row_blocks_collapsed').on('shown.bs.collapse', function(e){
+	//Same height for blocks in a row
+	$(this).eqHeight('.edit-form', {equalize_interval: 15000,  break_point: 568});
+	$('#show_'+$(this).attr('id')).text('Masquer les blocs');
+}).on('hidden.bs.collapse', function(e){
+	$('#show_'+$(this).attr('id')).text('Voir les blocs');
+});
 
 function mediaActions($modal, callback){
 	$('.mediaInsert').on("click", function(e){

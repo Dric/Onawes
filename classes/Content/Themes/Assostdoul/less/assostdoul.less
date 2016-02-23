@@ -15,6 +15,15 @@ body {
   position: relative;
 }
 
+a{
+  transition-duration: 300ms;
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+    text-decoration: underline;
+  }
+}
+
 .space-top{
   margin-top: 40px;
 }
@@ -128,10 +137,19 @@ body {
   width: 200px;
   border: 2px solid @link-color;
 }
+#navigationMenu{
+  transition: height .35s ease;
+}
 
 .navbar{
   background: @gray-base;
   border: none;
+}
+.navbar-nav li a{
+  transition: background 1s ease;
+  height: 60px;
+  text-shadow: 0 1px 0 @gray-base;
+  padding: 19px 15px 19px;
 }
 
 .navbar-collapse{
@@ -143,6 +161,12 @@ body {
 }
 .navbar-brand{
   height: 60px;
+  font-weight: 200;
+  &:hover,
+  &:focus {
+    color: @link-hover-color;
+    text-decoration: underline;
+  }
 }
 
 /* For Responsive design */

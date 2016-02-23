@@ -223,7 +223,8 @@ class Fs {
 		$path = rtrim($path, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
 		$path = ltrim($path, DIRECTORY_SEPARATOR);
 		$dir = $this->mountName.DIRECTORY_SEPARATOR.$path;
-		$cDir = scandir($dir);
+		$cDir = @scandir($dir);
+		if (empty($cDir)) return null;
 		foreach ($cDir as $value){
 			if (!in_array($value,array(".","..")) and (($filesOnly and !is_dir($dir . $value)) or !$filesOnly)){
 				if ((!empty($extension) and pathinfo($value, PATHINFO_EXTENSION) == $extension) or empty($extension)){
