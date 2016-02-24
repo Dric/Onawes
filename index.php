@@ -54,7 +54,7 @@ if ($settings->prettyURL) {
 	 * 2.	`index.json`
 	 * 3.	`?request=delPage&test=true`
 	 */
-	$exp = '#'.str_replace('/', '\\/', str_replace('index.php', '',  $_SERVER['SCRIPT_NAME'])).'(edit|)(?:\/|)([a-z-A-Z.]*)(?:\/|)(\?.*|)#is';
+	$exp = '#'.str_replace('/', '\\/', str_replace('index.php', '',  $_SERVER['SCRIPT_NAME'])).'(edit|)(?:\/|)(?!classes\/)([a-z-A-Z.]*)(?:\/|)(\?.*|)#is';
 	if (preg_match($exp, $_SERVER['REQUEST_URI'], $match)) {
 		header("Status: 200 OK", false, 200);
 		if (!empty($match[1]) and $match[1] == 'edit'){
@@ -64,7 +64,11 @@ if ($settings->prettyURL) {
 			$requestedPage = str_replace('/', '', $match[2]);
 		}
 		// $match[3] is the same as $_REQUEST
+	}else{
+		header("HTTP/1.0 404 Not found");
+		die();
 	}
+
 }else{
 	// No pretty url, but we must return the requested page...
 	if (isset($_REQUEST['page'])){
@@ -119,8 +123,8 @@ if (isset($_REQUEST['ajax']) and Security::isLoggedIn()){
 }
 
 
-// Loading default page if none requested...
-if (empty($requestedPage) and !$adminMode){
+// Loading default page if none requested (and not in admin mode)...
+if ((empty($requestedPage) or $requestedPage == 'index.php') and !$adminMode){
 	$requestedPage = $Content->getSiteSettings()['mainPage'];
 }
 
