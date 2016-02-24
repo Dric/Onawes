@@ -3,13 +3,37 @@ Onawes!
 
 (Oh No, Another Website Edit System !)
 
-Onawes allow to generate one-page websites, based on Twitter Bootstrap 3.
+Onawes allow to generate simple websites, based on Twitter Bootstrap 3.
 
-It supports theming and custom blocks.
+It supports themes and custom blocks.
 
 The structure is organized in pages, which contains rows, which contains blocks.
 
+For now, blocks types are :
+
+- Generic Text blocks (with markdown syntax)
+- News blocks (with UI to create articles)
+- Contact Form
+- Address block
+
+## Requirements
+
+- PHP 5.4 (may work with previous PHP 5 versions, but not tested)
+- Apache 2.4 or lighttpd (Nginx not tested)
+
+Data is saved in JSON files, no SQL database needed !
+
 ## Install
+
+### With Git
+
+    git clone https://github.com/Dric/Onawes.git
+
+### Manual install
+
+Unzip archive on your web server
+
+### Settings
 
 Just access your website, the installer will run automatically.
 

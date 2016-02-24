@@ -64,26 +64,31 @@ class Installer {
 		exit;
 	}
 
-	protected static function generateSalt($length = 32){
-		return str_replace('\'', '#', openssl_random_pseudo_bytes ($length));
+	protected static function generateSalt($length = 64){
+		return base64_encode(openssl_random_pseudo_bytes($length));
 	}
 
 	public static function createLocalSettings(){
 		global $args;
+		//Creating htaccess file...
+		$fs = new \FileSystem\Fs($args['absolutePath']);
+		$path = DIRECTORY_SEPARATOR.trim(str_replace('index.php', '', $_SERVER['SCRIPT_NAME']), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+		$ret = $fs->writeFile('.htaccess', 'FallbackResource '.$path.'index.php');
+
+
+		// Creating LocaSettings File...
 		$authSalt = self::generateSalt();
-		$cookieSalt = self::generateSalt(16);
+		$cookieSalt = self::generateSalt(32);
 		$pwd = hash('SHA512',$_REQUEST['adminPwd'].$authSalt);
 		$prettyURL = (isset($_REQUEST['usePrettyURL'])) ? 'true' : 'false';
 		$fs = new Fs($args['absolutePath'].DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR);
-		$content = '
-			<?php
+		$content = '<?php
     		class LocalSettings extends Settings {
     		  protected $authPwd      = \''.$pwd.'\';
     		  protected $authSaltKey  = \''.$authSalt.'\';
     		  protected $cookieKey    = \''.$cookieSalt.'\';
     		  protected $prettyURL    = '.$prettyURL.';
-    	  }
-		';
-		return $fs->writeFile('LocalSettings.php', $content);
+    	  }';
+		return $fs->writeFile('LocalSettings.php', trim($content));
 	}
 }

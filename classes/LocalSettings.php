@@ -1,9 +1,7 @@
-
-			<?php
+<?php
     		class LocalSettings extends Settings {
-    		  protected $authPwd      = '547516a06f3f1fca37aaee832f70aa221b8e1d288d43f3c985203aa2c68b43ae8dc1e9252a1e84da044424c37a10e78810e7e2598c7a694e789a58cc8ca57ca0';
-    		  protected $authSaltKey  = '©õ©^ˆ/ƒm_x…æ\ÊR>—#}äÉ®aû‚UX}“7';
-    		  protected $cookieKey    = '¬Ú¶¡F+ÖBVJÍŽµ£ÀÁ';
+    		  protected $authPwd      = '94c097b0f474559fa988e44f7b4099d7926133a48cb034b3a3748f41def9bfcd113974eb4def78a37e24d78c0518666ac0746f06ab1b6cb1290d8e19662936e4';
+    		  protected $authSaltKey  = 'kRjTSwIse16yPYoejwwrUwU9L9HYQTLZBpPq4Wa37xCbqiZOs22+Q9fkGsm2aWcFHHzEUXPPBRT4yhF4xaU7vQ==';
+    		  protected $cookieKey    = '+YYr1Tyd6CGrJLTrG6WMyHiTgxLyMH4e/KpIJ+L9J4w=';
     		  protected $prettyURL    = true;
     	  }
-		

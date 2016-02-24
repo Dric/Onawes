@@ -1,13 +1,12 @@
 <?php
-
 // PHP Classes auto-loading...
 spl_autoload_register(function ($class) {
 	if (preg_match('/^Content\\\\Themes\\\\(\w*)/i', $class, $matches)) {
-		@include_once 'classes/' . str_replace("\\", "/", $class) . '/' . $matches[1] . '.php';
+		include_once 'classes/' . str_replace("\\", "/", $class) . '/' . $matches[1] . '.php';
 	}elseif($class == 'PHPMailer'){
-		@include_once 'classes'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'class.'.strtolower($class).'.php';
+		include_once 'classes'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'class.'.strtolower($class).'.php';
 	}else{
-		@include_once 'classes/' . str_replace("\\", "/", $class) . '.php';
+		include_once 'classes/' . str_replace("\\", "/", $class) . '.php';
 	}
 });
 
@@ -18,7 +17,6 @@ $args = array(
 	'absolutePath'  => realpath(dirname(__FILE__)),
 	'absoluteURL'   => $absURL
 );
-
 // Loading settings...
 if (file_exists(realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR.'classes'.DIRECTORY_SEPARATOR.'LocalSettings.php')){
 	/** @var Settings $settings */
@@ -169,3 +167,4 @@ if ($adminMode){
 		?><h1>Erreur : Impossible de charger la page <code><?php echo $requestedPage; ?></code> !</h1><?php
 	}
 }
+//phpinfo();

@@ -126,7 +126,8 @@ class ContentManager {
 	protected function savePage(Page $page){
 		$fs = new Fs($this->contentDir);
 		// No rows = new page !
-		if(empty($page->getRows())){
+		$rows = $page->getRows();
+		if(empty($rows)){
 			return $fs->writeFile($page->getFileName(), $page->toJSON(), false, false);
 		}
 		// A backup is made of the file when saving
@@ -530,8 +531,9 @@ class ContentManager {
 		<?php
 		$nbRows = 0;
 		/** @var Row $row */
-		if (!empty($page->getRows())){
-			foreach ($page->getRows() as $index => $row){
+		$rows = $page->getRows();
+		if (!empty($rows)){
+			foreach ($rows as $index => $row){
 				// Nouvelle ligne avant le bloc référent
 				if ($refRow == $row->getId() and $rowPosition == 'before'){
 					$nbRows++;
@@ -660,10 +662,11 @@ class ContentManager {
 						<div class="row edit-row collapse row_blocks_collapsed" id="row_<?php echo $row->getId(); ?>_blocks">
 							<?php
 							$nbBlocks = 0;
-							if (empty($row->getBlocks()) and !$row->isUnsaved()) {
+							$blocks = $row->getBlocks();
+							if (empty($blocks) and !$row->isUnsaved()) {
 								$addBlock = new Block('newBlock', $row->getId());
 								$this->editBlock($addBlock, $fileName, 1);
-							}elseif(!empty($row->getBlocks())){
+							}elseif(!empty($blocks)){
 								foreach ($row->getBlocks() as $index => $block){
 									// Nouveau block avant le bloc référent
 									if ($refBlock == $block->getFullId() and $blockPosition == 'before'){
@@ -706,7 +709,9 @@ class ContentManager {
 	/**
 	 * Display an edit form for the block
 	 *
-	 * @param string $fileName File Name where is saved the block
+	 * @param \Content\Block $block
+	 * @param string         $fileName File Name where is saved the block
+	 * @param int            $position
 	 */
 	public function editBlock(Block $block, $fileName, $position){
 		global $Content;

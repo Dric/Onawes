@@ -106,7 +106,6 @@ class ContactFormBlock extends Block{
 			new Alert('error', 'Au moins un des champs requis est vide !');
 			return false;
 		}
-		$sendTo = $this->sendTo[htmlentities($sendTo)];
 		$expName = htmlentities($expName);
 		if (!\Check::isEmail($expEmail)){
 			new Alert('error', 'L\'adresse email n\'est pas valide');
@@ -136,7 +135,7 @@ class ContactFormBlock extends Block{
 
 			try {
 				$mail->send();
-				new Alert('success', 'Le message a été correctement envoyé !');
+				if (!$isCopy)	new Alert('success', 'Le message a été correctement envoyé !');
 				return true;
 			}	catch (Exception $e) {
 				new Alert('error', 'Impossible d\'envoyer le message à ' . $to. ': '.$e->getMessage());
@@ -156,13 +155,21 @@ class ContactFormBlock extends Block{
 		global $settings;
 		if (isset($_REQUEST['email_SendTo']) and isset($_REQUEST['email_SenderName']) and isset($_REQUEST['email_SenderEmail']) and isset($_REQUEST['email_Message'])){
 			$spamField = (isset($_REQUEST['email_Subject'])) ? $_REQUEST['email_Subject'] : null;
-			$ret = $this->sendEmail($_REQUEST['email_SendTo'], $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], $spamField);
-			// If the main recipient is the same as the copyTo recipient, we don't send the same email two times to same address
-			if ($ret and !empty($this->copyTo) and (!isset($this->copyTo[$_REQUEST['email_SendTo']]))){
-				$ret = $this->sendEmail($this->copyTo, $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], null, true);
+			if (isset($this->sendTo[$_REQUEST['email_SendTo']])){
+				$ret = $this->sendEmail($this->sendTo[$_REQUEST['email_SendTo']], $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], $spamField);
+				// If the main recipient is the same as the copyTo recipient, we don't send the same email two times to same address
+				if ($ret and !empty($this->copyTo)){
+					foreach ($this->copyTo as $name => $email){
+						if ($name != $_REQUEST['email_SendTo']){
+							$ret = $this->sendEmail($email, $_REQUEST['email_SenderName'], $_REQUEST['email_SenderEmail'], $_REQUEST['email_Message'], null, true);
+						}
+					}
+				}
+			}else{
+				new Alert('error', 'Le destinataire de l\'email est invalide !');
 			}
 		}elseif(isset($_REQUEST['email_SendTo'])){
-			?><div class="alert alert-danger">Erreur : un des champs requis n'est pas rempli !</div><?php
+			new Alert('error', 'Au moins un des champs requis n\'est pas rempli !');
 		}
 		?>
 		<form action="#<?php echo $this->getFullId(); ?>" method="POST">
